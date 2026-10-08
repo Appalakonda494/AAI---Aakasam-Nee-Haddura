@@ -40,6 +40,46 @@ _GREEK = [
 def _escape(s):
     return s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
+_NOTATION_RULES = [
+    # numbers multiplied with x: 6x5, 4.0x10^2, 3x3 matrix, and "2 x 3", "(a) x (b)"
+    (re.compile(r'(?<=\d)x(?=\d)'), '×'),
+    (re.compile(r'(?<=[\d)]) x (?=[\d(])'), ' × '),
+    (re.compile(r'(?<=[\d)])\s+x(?=\d)'), ' ×'),     # 5.3 x10^-4
+    (re.compile(r'(?<=\d)x\s+(?=\d)'), '× '),        # 5.3x 10^-4
+    (re.compile(r'(?<![A-Za-z0-9_^])x(?=10(?:\^|<su))'), '×'),     # 'needs x10^-4'
+    # angles: 343 deg 38' 11" -> 343° 38′ 11″
+    (re.compile(r'(\d)\s*deg\b'), r'\1°'),
+    (re.compile(r"(°\s*\d+)'"), r'\1′'),
+    (re.compile(r'(′\s*\d+)"'), r'\1″'),
+    # intervals: -inf, inf, U between interval brackets
+    (re.compile(r'\binf\b'), '∞'),
+    (re.compile(r'([\])]) U ([\[(])'), r'\1 ∪ \2'),
+    # units: microF -> μF, 20 ohm -> 20 Ω, 6.67 milliohm -> 6.67 mΩ, 1 angstrom -> 1 Å
+    (re.compile(r'\bmicro([A-Z])'), r'μ\1'),
+    (re.compile(r'(\d)\s*milliohms?\b'), r'\1 mΩ'),
+    (re.compile(r'(\d)\s*ohms?\b'), r'\1 Ω'),
+    (re.compile(r'([\d)])\s*angstroms?\b'), r'\1 Å'),
+    (re.compile(r'(?<=\S) approx (?=\S)'), ' ≈ '),
+    # sinx, cosA, tan7x, sin15A, logx -> sin x, cos A, tan 7x ...
+    (re.compile(r'\b(sin|cosec|cos|tan|sec|cot|log|ln)([xyzABCD]|\d+[A-Za-z]?)(?![A-Za-z0-9])'), r'\1 \2'),
+    # d-something names
+    (re.compile(r'\bdPhi(\d?)'), lambda m: 'dΦ' + ('<SUB>' + m.group(1) + '</SUB>' if m.group(1) else '')),
+    (re.compile(r'\bdI(\d)\b'), r'dI<SUB>\1</SUB>'),
+    (re.compile(r'\bdtheta\b'), 'dθ'),
+    (re.compile(r'\bPhi(\d?)\b'), lambda m: 'Φ' + ('<SUB>' + m.group(1) + '</SUB>' if m.group(1) else '')),
+    (re.compile(r'\bdeltaP\b'), 'ΔP'),
+    (re.compile(r'\bDelta(\d?)\b'), lambda m: 'Δ' + ('<SUB>' + m.group(1) + '</SUB>' if m.group(1) else '')),
+    (re.compile(r'\bDeltaT\b'), 'ΔT'),
+    (re.compile(r'\btau\b'), 'τ'), (re.compile(r'\bchi\b'), 'χ'), (re.compile(r'\bxi\b'), 'ξ'),
+]
+
+
+def apply_notation(s, sub='sub'):
+    """Plain-text notation clean-up shared by the website and PDF exporters."""
+    for pat, rep in _NOTATION_RULES:
+        s = pat.sub(rep, s)
+    return s.replace('<SUB>', '<' + sub + '>').replace('</SUB>', '</' + sub + '>')
+
 
 def _group_scripts(s):
     """Turn ^(...) and _(...) (balanced, possibly nested) into sup/sub tags.
@@ -76,6 +116,7 @@ def math_html(s):
     s = _SQRT_BARE_PAT.sub(lambda m: f'√{m.group(1)}', s)
     s = re.sub(r'\barc(sin|cos|tan|cot|sec|cosec)\b', r'\1<sup>-1</sup>', s)
     s = s.replace('+/-', '±').replace('infinity', '∞').replace('-&gt;', '→')
+    s = apply_notation(s, 'sub')
     s = s.replace('*', '×')
     s = _COEF_SUB_PAT.sub(lambda m: f'{m.group(1)}<sub>{m.group(2)}</sub>', s)
     s = _VAR_SUB_PAT.sub(lambda m: f'{_VAR_GREEK.get(m.group(1), m.group(1))}<sub>{m.group(2)}</sub>', s)
