@@ -47,6 +47,31 @@
     return 'కంగారు పడకు! ఈ తప్పులే రేపటి మార్కులు – సొల్యూషన్స్ చూసి మళ్లీ ప్రయత్నించు.';
   }
 
+  /* ---------- film watermark ---------- */
+  var WM = ['arms', 'face', 'script'];
+  var wmEl = document.getElementById('watermark');
+  var wmOk = {};
+  WM.forEach(function (k) { var i = new Image(); i.onload = function () { wmOk[k] = true; if (wmWanted) setWatermark(wmWanted); }; i.src = 'assets/wm-' + k + '.jpg'; });
+  var wmWanted = null;
+  // Home rotates daily; the result screen picks by score (triumph vs resolve); empty analysis gets the handwriting texture.
+  function setWatermark(kind) {
+    wmWanted = kind;
+    if (!wmEl) return;
+    if (!kind || !wmOk[kind]) { wmEl.classList.remove('on'); return; }
+    wmEl.style.setProperty('--wm', 'url("' + new URL('assets/wm-' + kind + '.jpg', document.baseURI).href + '")');
+    wmEl.classList.add('on');
+  }
+  function watermarkFor(screen) {
+    if (screen === 'home') return WM[Math.floor(Date.now() / 86400000) % WM.length];
+    if (screen === 'result') {
+      var a = A.findAttempt(view.attemptId);
+      var p = a && a.result.max ? a.result.correct * 100 / a.result.max : 0;
+      return p >= 60 ? 'arms' : 'face';
+    }
+    if (screen === 'insights' && !attempts().length) return 'script';
+    return null;
+  }
+
   /* ---------- small helpers ---------- */
   function go(next) {
     view = Object.assign({ screen: 'home', tab: view.tab || 'full', i: 0, filter: 'all', shown: {} }, next);
@@ -830,6 +855,7 @@
     if (view.screen !== 'test' && view.screen !== 'infinity') topExtra.innerHTML = '';
     renderNav();
     SCREENS[view.screen]();
+    setWatermark(watermarkFor(view.screen));
     if (view.screen === 'test') startTimer();
   }
   function rerenderKeepScroll() {

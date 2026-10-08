@@ -344,3 +344,14 @@ details.deep:not([open]) > summary::after { content: "show"; }
 .hero-title .t-img { height: 58px; width: auto; max-width: 100%; }
 .brand .t-img { height: 24px; width: auto; }
 @media (max-width: 760px) { .hero-title .t-img { height: 46px; } }
+
+/* ---------- faint film watermark (low-text screens only) ---------- */
+#watermark { position: fixed; right: 0; bottom: 0; width: min(62vw, 760px); height: min(92vh, 760px); z-index: 0; pointer-events: none;
+  background: var(--wm) right bottom / contain no-repeat; opacity: 0; transition: opacity .5s ease;
+  -webkit-mask-image: linear-gradient(to left, #000 30%, transparent 98%), linear-gradient(to top, #000 40%, transparent 100%);
+  -webkit-mask-composite: source-in; mask-image: linear-gradient(to left, #000 30%, transparent 98%), linear-gradient(to top, #000 40%, transparent 100%); mask-composite: intersect; }
+#watermark.on { opacity: .13; }
+#app, .topbar { position: relative; z-index: 1; }
+.topbar { position: sticky; z-index: 10; }
+.card, .kpi { background: rgba(255, 255, 255, .93); }
+@media (max-width: 760px) { #watermark.on { opacity: .09; } }
