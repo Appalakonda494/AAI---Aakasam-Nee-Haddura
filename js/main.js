@@ -416,6 +416,7 @@
 
     app.innerHTML = banner +
       '<div class="hero"><div class="hero-text"><div class="hero-title"><span class="t-text">ఆకాశం నీ హద్దురా!</span><img class="t-img" src="assets/title-dark.png" alt="ఆకాశం నీ హద్దురా!"></div>' +
+      '<div class="hero-quote te">ఇప్పుడు గెలవడం గాని ఓడిపోవడం గాని – నీ చేతిలోనే ఉంది, గెలుస్తావు కదా మహా?</div>' +
       '<div class="hero-sub">AAI JE Airport Operations &middot; Maths &amp; Physics mock tests</div>' +
       '<div class="hero-sub2">Take a test, open the solutions one by one, and see exactly where to focus.</div>' +
       '<div class="row" style="margin-top:14px"><button class="primary" data-action="tab" data-arg="full">Start a test</button><button class="soft" data-action="insights">View my analysis</button></div></div>' +

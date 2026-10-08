@@ -370,3 +370,5 @@ details.deep:not([open]) > summary::after { content: "show"; }
 .modal h3 { font-size: 16px; margin-bottom: 6px; }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pop { from { transform: translateY(6px) scale(.98); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.hero-quote { margin-top: 6px; font-size: 14px; line-height: 1.5; font-weight: 600; color: #5b3a29; }
