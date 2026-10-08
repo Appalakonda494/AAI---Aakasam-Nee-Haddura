@@ -19,25 +19,6 @@
   var view = { screen: 'home', tab: 'full', i: 0, filter: 'all', shown: {} };
 
   /* ---------- telugu motivation ---------- */
-  var QUOTES = [
-    'కష్టపడు… కాలర్ ఎగరేసే రోజు వస్తుంది!',
-    'గమ్యం గగనమే – పట్టుదలే రెక్కలు!',
-    'ఈరోజు చేసే ప్రాక్టీస్, రేపటి సెలెక్షన్!',
-    'తప్పులు తప్పు కాదు… అవే నీ టీచర్లు!',
-    'ఒక్కో ప్రశ్న, ఒక్కో అడుగు – గమ్యం దగ్గరే!',
-    'రోజుకి కొంచెం చదివినా చాలు – చివరికి గెలుపు నీదే!',
-    'నమ్మకం ఉంచు… నువ్వు చేయగలవు!',
-    'ఓటమి అంటే ఆగిపోవడం కాదు, ఇంకోసారి ప్రయత్నించడం!',
-    'కష్టం ఈరోజు, కిరీటం రేపు!',
-    'రన్‌వే మీద స్పీడ్ పెంచితేనే టేకాఫ్ – ప్రిపరేషన్ స్పీడ్ ఇప్పుడే పెంచు!',
-    'అలసిపోయినా సరే, అడుగు ముందుకే వెయ్యి!',
-    'సులువైనవి అందరూ చేస్తారు – కష్టమైనవి కొట్టినవాళ్లే టాపర్లు!',
-    'ఇప్పుడు పడే చెమట, రేపటి విజయం!'
-  ];
-  function dailyQuote(shift) {
-    var day = Math.floor(Date.now() / 86400000);
-    return QUOTES[(day + (shift || 0)) % QUOTES.length];
-  }
   function resultMessage(a) {
     var r = a.result, p = r.max ? r.correct * 100 / r.max : 0;
     if (a.config.reattemptOf && r.correct > 0) return 'నిన్నటికంటే ఈరోజు బెటర్ – అదే అసలైన గెలుపు!';
@@ -383,8 +364,7 @@
       '<div class="hero-sub2">Take a test, open the solutions one by one, and see exactly where to focus.</div>' +
       '<div class="row" style="margin-top:14px"><button class="primary" data-action="tab" data-arg="full">Start a test</button><button class="soft" data-action="insights">View my analysis</button></div></div>' +
       '<div class="hero-img"></div></div>' +
-      '<div class="card quote"><div><div class="label">నేటి మాట</div><div class="te" id="quote-text">' + dailyQuote(view.quoteShift) + '</div></div>' +
-      '<button class="sm" data-action="quote">ఇంకోటి</button></div>' +
+
       '<div class="kpis"><div class="kpi"><b>' + DATA.questions.length + '</b><span>questions in bank</span></div>' +
       '<div class="kpi pri"><b>' + st.unique + '</b><span>practised so far</span></div>' +
       '<div class="kpi good"><b>' + acc + '</b><span>overall accuracy</span></div>' +
@@ -875,7 +855,6 @@
       case 'home': if (leaveGuard()) go({ screen: 'home' }); break;
       case 'insights': if (leaveGuard()) go({ screen: 'insights' }); break;
       case 'tab': view.tab = arg; render(); break;
-      case 'quote': view.quoteShift = (view.quoteShift || 0) + 1; document.getElementById('quote-text').textContent = dailyQuote(view.quoteShift); break;
       case 'chapter': go({ screen: 'chapter', chapterId: arg }); break;
       case 'topic': go({ screen: 'topic', topicId: arg }); break;
       case 'study-topic':
