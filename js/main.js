@@ -353,7 +353,7 @@
     }).join('') : '<div class="empty">No attempts yet. Pick a test above and your results will show up here.</div>';
 
     app.innerHTML = banner +
-      '<div class="hero"><div class="hero-text"><div class="hero-title">ఆకాశం నీ హద్దురా!</div>' +
+      '<div class="hero"><div class="hero-text"><div class="hero-title"><span class="t-text">ఆకాశం నీ హద్దురా!</span><img class="t-img" src="assets/title-dark.png" alt="ఆకాశం నీ హద్దురా!"></div>' +
       '<div class="hero-sub">AAI JE Airport Operations &middot; Maths &amp; Physics mock tests</div>' +
       '<div class="hero-sub2">Take a test, open the solutions one by one, and see exactly where to focus.</div>' +
       '<div class="row" style="margin-top:14px"><button class="primary" data-action="tab" data-arg="full">Start a test</button><button class="soft" data-action="insights">View my analysis</button></div></div>' +

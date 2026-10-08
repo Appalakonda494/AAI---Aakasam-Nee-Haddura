@@ -5,3 +5,5 @@ __pycache__/
 # film-poster artwork stays local (not mine to publish)
 assets/hero.jpg
 assets/icon.png
+assets/title-dark.png
+assets/title-light.png

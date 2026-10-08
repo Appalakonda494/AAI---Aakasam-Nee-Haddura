@@ -336,3 +336,12 @@ details.deep:not([open]) > summary::after { content: "show"; }
 .hero-sub2 { margin-top: 2px; font-size: 12px; color: #7a5a44; }
 .hero-img { background: #cdb893 url(../assets/hero.jpg) center 30% / cover no-repeat; min-height: 150px; }
 @media (max-width: 760px) { .hero { grid-template-columns: 1fr; } .hero-img { min-height: 130px; order: -1; } .hero-title { font-size: 28px; } }
+
+/* exact poster lettering (image) replaces the font text when the artwork file is present */
+.t-img { display: none; }
+.title-img .t-img { display: block; }
+.title-img .t-text { display: none; }
+.hero-title { filter: none; }
+.hero-title .t-img { height: 58px; width: auto; max-width: 100%; }
+.brand .t-img { height: 24px; width: auto; }
+@media (max-width: 760px) { .hero-title .t-img { height: 46px; } }
