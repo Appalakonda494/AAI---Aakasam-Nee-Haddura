@@ -70,7 +70,8 @@
   }
   function shabashBox(qid, seconds) {
     var line = shabashLine(qid);
-    return line ? '<div class="shabash te"><div>' + line + '</div><small>Right ' + (seconds < 1 ? 'in under a second' : 'in ' + seconds + 's') + ' - recommended ' + recommendedSec() + 's</small></div>' : '';
+    if (!line) return '';
+    return '<div class="shabash te">' + line + ' <span class="when">' + (seconds < 1 ? 'under 1s' : seconds + 's') + ' of ' + recommendedSec() + 's</span></div>';
   }
 
   /* ---------- small helpers ---------- */
@@ -93,6 +94,24 @@
   function minutesFor(n) {
     var s = settings();
     return s.perQuestionMinutes ? Math.ceil(n * s.perQuestionMinutes) : 0;
+  }
+
+  /* ---------- per-question live timer (shown quietly next to the question number) ---------- */
+  var qTimerHandle = null;
+  function stopQTimer() { if (qTimerHandle) { clearInterval(qTimerHandle); qTimerHandle = null; } }
+  function startQTimer(getTimes) {
+    stopQTimer();
+    var el = document.getElementById('qtimer');
+    if (!el) return;
+    function upd() {
+      if (!clock.qid) return;
+      var t = (getTimes()[clock.qid] || 0) + Math.round((Date.now() - clock.start) / 1000);
+      var rec = recommendedSec();
+      el.textContent = fmtTime(t) + ' / ' + fmtTime(rec);
+      el.className = 'qtimer' + (t > rec ? ' over' : '');
+    }
+    upd();
+    qTimerHandle = setInterval(upd, 1000);
   }
 
   /* ---------- per-question clock ---------- */
@@ -309,7 +328,7 @@
   function revealBlock(q, shown) {
     return shown
       ? solutionHtml(q) + '<div style="margin-top:10px"><button class="link" data-action="toggle-solution" data-arg="' + q.id + '">Hide solution</button></div>'
-      : '<div class="reveal"><div class="muted" style="margin-bottom:4px">Think it through first, then check.</div><div class="te-note te" style="margin:0 0 10px">ఒక్కసారి నువ్వే ఆలోచించు, తర్వాత చూడు – అప్పుడే గుర్తుంటుంది!</div>' +
+      : '<div class="reveal"><div class="muted" style="margin-bottom:4px">Think it through first, then check.</div><div class="te-note" style="margin:0 0 10px">ఒక్కసారి నువ్వే ఆలోచించు, తర్వాత చూడు.</div>' +
         '<button class="primary" data-action="toggle-solution" data-arg="' + q.id + '">Show solution</button></div>';
   }
   // options for review-style screens: the right answer stays hidden until the solution is opened
@@ -499,7 +518,7 @@
     topExtra.innerHTML = current.endsAt ? '<span class="timer-pill" id="timer"></span>' : '<span class="muted small">No timer</span>';
     app.innerHTML = '<div class="progress"><i style="width:' + Math.round(answered * 100 / total) + '%"></i></div><div class="test-layout"><div class="card">' +
       '<div class="qhead"><div><span class="tag">' + q.subject + '</span><span class="tag plain">' + esc(chapterName(q.chapter)) + '</span></div>' +
-      '<div class="qnum">Question <b>' + (view.i + 1) + '</b> of ' + total + '</div></div>' +
+      '<div class="qnum"><span class="qtimer" id="qtimer" title="Time on this question / recommended"></span>Question <b>' + (view.i + 1) + '</b> of ' + total + '</div></div>' +
       '<div class="qtext">' + q.q + '</div>' + opts +
       '<div class="actions"><button data-action="prev"' + (view.i === 0 ? ' disabled' : '') + '>&larr; Previous</button>' +
       '<button data-action="mark">' + (current.marked[qid] ? 'Unmark review' : 'Mark for review') + '</button>' +
@@ -510,6 +529,7 @@
       '<div class="legend"><span style="--c:var(--good)">Answered</span><span style="--c:var(--bad)">Not answered</span><span style="--c:var(--mark)">Marked</span><span style="--c:var(--line)">Not visited</span></div>' +
       '<div style="margin-top:14px"><button class="primary big block" data-action="submit">Submit test</button></div></div></div></div>';
     A.save(KEYS.current, current);
+    startQTimer(function () { return current.times; });
     if (current.endsAt) tick();
   }
   function confirmSubmit() {
@@ -552,15 +572,23 @@
     topExtra.innerHTML = '<span class="tag mark" style="margin:0">Infinity &middot; round ' + inf.cycle + '</span>';
     app.innerHTML = '<div class="card"><div class="live"><div><b>' + n + '</b>answered</div><div><b>' + correct + '</b>correct</div>' +
       '<div><b>' + (n ? pct(correct / n) + '%' : '-') + '</b>accuracy</div><div><b>' + inf.streak + '</b>streak</div><div><b>' + inf.best + '</b>best streak</div>' +
-      '<span style="flex:1"></span><button class="primary" data-action="inf-end">End session</button></div></div>' + infMood(inf, checked, mine, q) +
-      '<div class="card"><div class="qhead"><div>' + verdict + tagsFor(q) + '</div><div class="qnum">Question <b>' + (inf.i + 1) + '</b></div></div>' +
-      '<div class="qtext">' + q.q + '</div>' + opts +
+      '<span style="flex:1"></span><button class="primary" data-action="inf-end">End session</button></div></div>' +
+      '<div class="card"><div class="qhead"><div>' + verdict + tagsFor(q) + '</div><div class="qnum"><span class="qtimer" id="qtimer" title="Time on this question / recommended"></span>Question <b>' + (inf.i + 1) + '</b></div></div>' +
+      '<div class="qtext">' + q.q + '</div>' + opts + infMood(inf, checked, mine, q) +
       (checked ? revealBlock(q, shown) : '') +
       '<div class="actions">' + starBtn(qid) + '<span class="spacer"></span>' +
       (!checked
         ? '<button data-action="inf-skip">Skip</button><button class="primary" data-action="inf-check"' + (mine === undefined ? ' disabled' : '') + '>Check answer</button>'
         : '<button class="primary" data-action="inf-next">Next question &rarr;</button>') + '</div></div>';
     A.save(KEYS.infinity, inf);
+    if (checked) {
+      var qt = document.getElementById('qtimer');
+      var spent = inf.times[qid] || 0;
+      if (qt) { qt.textContent = fmtTime(spent) + ' / ' + fmtTime(recommendedSec()); qt.className = 'qtimer' + (spent > recommendedSec() ? ' over' : ''); }
+      stopQTimer();
+    } else {
+      startQTimer(function () { return inf.times; });
+    }
   }
   function infMood(session, checked, mine, q) {
     if (!checked) return '';
@@ -855,6 +883,7 @@
   }
   function render() {
     window.scrollTo(0, 0);
+    stopQTimer();
     modalRoot.innerHTML = '';
     if (view.screen !== 'test') { stopTimer(); if (current) clockStop(current.times); }
     if (view.screen !== 'infinity' && inf) clockStop(inf.times);
