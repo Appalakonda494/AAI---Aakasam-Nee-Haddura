@@ -352,3 +352,7 @@ details.deep:not([open]) > summary::after { content: "show"; }
 .topbar { position: sticky; z-index: 10; }
 .card, .kpi { background: rgba(255, 255, 255, .93); }
 @media (max-width: 760px) { #watermark.on { opacity: .09; } }
+
+.shabash { margin: 4px 0 12px; padding: 10px 14px; border-radius: 10px; background: var(--good-soft); border-left: 4px solid var(--good); color: var(--text); font-size: 14px; line-height: 1.5; }
+.shabash small { display: block; margin-top: 2px; font-family: Inter, sans-serif; font-weight: 500; font-size: 11px; color: var(--good); }
+.card + .te-note { margin: -4px 4px 12px; font-size: 13px; }

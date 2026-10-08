@@ -53,6 +53,26 @@
     return null;
   }
 
+  /* ---------- shabash for right-and-quick answers ---------- */
+  function recommendedSec() {
+    var m = settings().perQuestionMinutes;
+    return m > 0 ? m * 60 : 60;
+  }
+  function isFastRight(qid, answer, times) {
+    return answer !== undefined && answer === QUESTIONS[qid].correct && ((times && times[qid]) || 0) <= recommendedSec();
+  }
+  function shabashLine(qid) {
+    var lines = window.AAI_SHABASH || [];
+    if (!lines.length) return '';
+    var h = 0;
+    for (var i = 0; i < qid.length; i++) h = (h * 31 + qid.charCodeAt(i)) % 9973;
+    return lines[h % lines.length];
+  }
+  function shabashBox(qid, seconds) {
+    var line = shabashLine(qid);
+    return line ? '<div class="shabash te"><div>' + line + '</div><small>Right ' + (seconds < 1 ? 'in under a second' : 'in ' + seconds + 's') + ' - recommended ' + recommendedSec() + 's</small></div>' : '';
+  }
+
   /* ---------- small helpers ---------- */
   function go(next) {
     view = Object.assign({ screen: 'home', tab: view.tab || 'full', i: 0, filter: 'all', shown: {} }, next);
@@ -532,7 +552,7 @@
     topExtra.innerHTML = '<span class="tag mark" style="margin:0">Infinity &middot; round ' + inf.cycle + '</span>';
     app.innerHTML = '<div class="card"><div class="live"><div><b>' + n + '</b>answered</div><div><b>' + correct + '</b>correct</div>' +
       '<div><b>' + (n ? pct(correct / n) + '%' : '-') + '</b>accuracy</div><div><b>' + inf.streak + '</b>streak</div><div><b>' + inf.best + '</b>best streak</div>' +
-      '<span style="flex:1"></span><button class="primary" data-action="inf-end">End session</button></div>' + infMood(inf, checked, mine, q) + '</div>' +
+      '<span style="flex:1"></span><button class="primary" data-action="inf-end">End session</button></div></div>' + infMood(inf, checked, mine, q) +
       '<div class="card"><div class="qhead"><div>' + verdict + tagsFor(q) + '</div><div class="qnum">Question <b>' + (inf.i + 1) + '</b></div></div>' +
       '<div class="qtext">' + q.q + '</div>' + opts +
       (checked ? revealBlock(q, shown) : '') +
@@ -544,6 +564,7 @@
   }
   function infMood(session, checked, mine, q) {
     if (!checked) return '';
+    if (isFastRight(q.id, mine, session.times)) return shabashBox(q.id, session.times[q.id] || 0);
     if (mine === q.correct) return session.streak >= 3 ? '<div class="te-note te">ఫైర్‌లో ఉన్నావ్! ' + session.streak + ' వరుసగా సరైనవి – ఆగకు!</div>' : '<div class="te-note te">సూపర్! సరైన సమాధానం.</div>';
     return '<div class="te-note te">పర్లేదు, తర్వాతి ప్రశ్న నీదే! తప్పు నుంచే నేర్చుకుంటాం.</div>';
   }
@@ -567,6 +588,11 @@
       if (s === 'correct') row.c++; else if (s === 'wrong') row.w++; else row.s++;
     });
     return Object.keys(by).map(function (k) { by[k].t = by[k].c + by[k].w + by[k].s; return by[k]; });
+  }
+  function fastNote(a) {
+    var n = a.qids.filter(function (id) { return isFastRight(id, a.answers[id], a.times); }).length;
+    if (!n) return '';
+    return '<div class="te-note te">శభాష్ బేటా! ' + n + ' ప్రశ్నలు సరైన సమాధానంతో, టైమ్ లోపలే (' + recommendedSec() + 's లోపు) పూర్తి చేశావు.</div>';
   }
   function renderResult() {
     var a = A.findAttempt(view.attemptId);
@@ -603,7 +629,7 @@
       (avg ? ' &middot; avg ' + avg + 's per question' : '') + (a.autoSubmitted ? ' &middot; auto-submitted when time ended' : '') + '</div>' +
       '<div class="score-grid"><div class="stat good"><b>' + r.correct + '</b>Correct</div><div class="stat bad"><b>' + r.wrong + '</b>Wrong</div>' +
       '<div class="stat warn"><b>' + r.skipped + '</b>Skipped</div><div class="stat"><b>' + accuracy + '%</b>Accuracy</div></div>' +
-      '<div class="te-note te">' + resultMessage(a) + '</div></div></div>' +
+      '<div class="te-note te">' + resultMessage(a) + '</div>' + fastNote(a) + '</div></div>' +
       '<div class="row" style="margin-top:16px"><button class="primary big" data-action="open-review" data-arg="' + a.id + '">Review &amp; solutions</button>' +
       (r.wrong + r.skipped > 0 ? '<button class="big soft" data-action="reattempt" data-arg="' + a.id + '">Re-attempt wrong &amp; skipped (' + (r.wrong + r.skipped) + ')</button>' : '') +
       '<button class="big" data-action="retake" data-arg="' + a.id + '">Retake whole test</button><button class="big" data-action="home">Home</button></div></div>' +
@@ -634,7 +660,7 @@
     app.innerHTML = '<div class="page-head"><div class="page-title">Review: ' + esc(a.title) + '</div><button data-action="open-result" data-arg="' + a.id + '">&larr; Back to result</button></div>' +
       '<div class="test-layout"><div class="card"><div class="qhead"><div>' + stTag + tagsFor(q) + (t ? '<span class="tag plain">' + t + 's spent</span>' : '') + '</div>' +
       '<div class="qnum">Question <b>' + (a.qids.indexOf(qid) + 1) + '</b></div></div><div class="qtext">' + q.q + '</div>' +
-      reviewOptions(q, mine, shown) + revealBlock(q, shown) +
+      (isFastRight(qid, mine, a.times) ? shabashBox(qid, (a.times && a.times[qid]) || 0) : '') + reviewOptions(q, mine, shown) + revealBlock(q, shown) +
       '<div class="actions"><button data-action="prev"' + (view.i === 0 ? ' disabled' : '') + '>&larr; Previous</button>' + starBtn(qid) + '<span class="spacer"></span>' +
       '<button class="primary" data-action="next"' + (view.i === list.length - 1 ? ' disabled' : '') + '>Next &rarr;</button></div></div>' +
       '<div class="side"><div class="card"><div class="field-label first">Show</div>' + filters +

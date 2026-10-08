@@ -26,6 +26,16 @@ A small web app to practise real AAI Junior Executive past-paper questions (Clas
 - Re-attempt only the wrong and skipped questions of any attempt, or retake the whole test.
 - Mistake bank (latest result wrong or skipped), bookmarks, and study mode (browse a chapter's solutions without being scored).
 
+**Study depth**
+- Solution order: Shortcut trick, Given, Concept, Formula, Calculation, answer, Good to know, then a collapsible **Additional info** block - the full note for the topic behind the question (definitions, every formula, why it works, cases, values, uses, common mistakes, exam patterns with practice questions).
+- 119 topic notes cover all 348 questions. Each chapter page lists its topics ("Topic notes") with a full-page reader.
+- Regenerate after editing `data/source/topics.json`: `python3 scripts/build_data.py`. New notes can be merged with `scripts/merge_topics.py`.
+
+**Personal touches**
+- Telugu title and motivation lines (score message on results, streak reactions, a nudge when the timer is low).
+- A "Shabash beta" message when a question is answered correctly within the recommended time (the timer setting per question, or 60 s). The lines live in `data/shabash.js` - swap in your favourite film dialogues.
+- Optional artwork in `assets/` (not committed): `icon.png`, `hero.jpg`, `title-dark.png`, `title-light.png`, `wm-face.jpg`, `wm-arms.jpg`, `wm-script.jpg`. Without them the site falls back to plain styling.
+
 **Your data** stays in your browser (`localStorage`). Export and import a JSON backup from the analysis page to move it between devices.
 
 ## Run it

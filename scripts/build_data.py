@@ -62,6 +62,9 @@ _NOTATION_RULES = [
     (re.compile(r'(?<=\S) approx (?=\S)'), ' ≈ '),
     # sinx, cosA, tan7x, sin15A, logx -> sin x, cos A, tan 7x ...
     (re.compile(r'\b(sin|cosec|cos|tan|sec|cot|log|ln)([xyzABCD]|\d+[A-Za-z]?)(?![A-Za-z0-9])'), r'\1 \2'),
+    # 'sqrt 2' / 'sqrt u' with a space, and the logical-and caret in 'p ^ q'
+    (re.compile(r'\bsqrt\s+(\d+|[a-z])\b'), r'√\1'),
+    (re.compile(r'(?<= )\^(?= )'), '∧'),
     # d-something names
     (re.compile(r'\bdPhi(\d?)'), lambda m: 'dΦ' + ('<SUB>' + m.group(1) + '</SUB>' if m.group(1) else '')),
     (re.compile(r'\bdI(\d)\b'), r'dI<SUB>\1</SUB>'),
