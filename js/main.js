@@ -22,10 +22,10 @@
   function resultMessage(a) {
     var r = a.result, p = r.max ? r.correct * 100 / r.max : 0;
     if (a.config.reattemptOf && r.correct > 0) return 'నిన్నటికంటే ఈరోజు బెటర్ – అదే అసలైన గెలుపు!';
-    if (p >= 85) return 'శభాష్! అదిరిపోయింది – ఇలాగే కొనసాగించు!';
+    if (p >= 85) return 'గెలిచావురా… నా బంగారు కొండ! శభాష్, ఇలాగే కొనసాగించు.';
     if (p >= 65) return 'చాలా బాగుంది! ఇంకొంచెం కష్టపడితే టాప్ స్కోర్ నీదే.';
     if (p >= 40) return 'పర్లేదు, పట్టు వస్తోంది! తప్పులను సొల్యూషన్స్‌లో చూసి మళ్లీ రాయి.';
-    return 'కంగారు పడకు! ఈ తప్పులే రేపటి మార్కులు – సొల్యూషన్స్ చూసి మళ్లీ ప్రయత్నించు.';
+    return 'గెలవడం కానీ ఓడిపోవడం కానీ నీ చేతిలోనే ఉందిరా – సొల్యూషన్స్ చూసి మళ్లీ ప్రయత్నించు.';
   }
 
   /* ---------- film watermark ---------- */
@@ -611,7 +611,7 @@
     if (!checked) return '';
     if (isFastRight(q.id, mine, session.times)) return shabashBox(q.id, session.times[q.id] || 0);
     if (mine === q.correct) return session.streak >= 3 ? '<div class="te-note te">ఫైర్‌లో ఉన్నావ్! ' + session.streak + ' వరుసగా సరైనవి – ఆగకు!</div>' : '<div class="te-note te">సూపర్! సరైన సమాధానం.</div>';
-    return '<div class="te-note te">పర్లేదు, తర్వాతి ప్రశ్న నీదే! తప్పు నుంచే నేర్చుకుంటాం.</div>';
+    return '<div class="te-note te">పర్లేదు, గెలుస్తావు కదా? తర్వాతి ప్రశ్న నీదే.</div>';
   }
   function infCheck(skip) {
     var qid = inf.qids[inf.i];
