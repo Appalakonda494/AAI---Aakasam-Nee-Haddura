@@ -215,88 +215,87 @@
     var el = document.getElementById('timer');
     if (el) {
       el.textContent = fmtTime(left);
-      el.className = 'timer' + (left < 60 ? ' low' : '');
+      el.className = 'timer-pill' + (left < 60 ? ' low' : '');
     }
     if (left <= 0) submitCurrent(true);
   }
 
   /* ---------- rendering: home ---------- */
+  function chipGroup(name, items, selected) {
+    return '<div class="chips">' + items.map(function (it) {
+      return '<label class="chip"><input type="radio" name="' + name + '" value="' + it[0] + '"' +
+        (String(it[0]) === String(selected) ? ' checked' : '') + '><span>' + it[1] + '</span></label>';
+    }).join('') + '</div>';
+  }
+
   function renderHome() {
     var s = settings();
-    var subjectOpts = ['Maths', 'Physics', 'Mixed'].map(function (x) {
-      return '<option' + (x === s.subject ? ' selected' : '') + '>' + x + '</option>';
-    }).join('');
-    var countOpts = [10, 20, 30, 50, 60, 0].map(function (n) {
-      return '<option value="' + n + '"' + (n === s.count ? ' selected' : '') + '>' + (n ? n + ' questions' : 'All questions') + '</option>';
-    }).join('');
-    var timeOpts = [[0, 'No timer'], [0.5, '30 sec / question'], [1, '1 min / question'], [1.5, '1.5 min / question'], [2, '2 min / question']].map(function (t) {
-      return '<option value="' + t[0] + '"' + (t[0] === s.perQuestionMinutes ? ' selected' : '') + '>' + t[1] + '</option>';
-    }).join('');
-    var negOpts = [[0, 'No negative marking'], [0.25, '-0.25 per wrong'], [0.33, '-0.33 per wrong'], [1, '-1 per wrong']].map(function (n) {
-      return '<option value="' + n[0] + '"' + (n[0] === s.negative ? ' selected' : '') + '>' + n[1] + '</option>';
-    }).join('');
-
-    var chapterHtml = ['Maths', 'Physics'].map(function (sub) {
-      var items = DATA.chapters.filter(function (c) { return c.subject === sub; }).map(function (c) {
-        return '<label class="check"><input type="checkbox" name="chapter" value="' + c.id + '"> ' +
-          esc(c.title) + ' <span class="muted small">(' + c.count + ')</span></label>';
-      }).join('');
-      return '<h3 style="margin-top:8px">' + sub + '</h3>' + items;
-    }).join('');
-
     var mistakes = mistakeIds().length;
     var hist = attempts().slice().reverse();
-    var histHtml = hist.length ? hist.slice(0, 15).map(function (a) {
+    var maths = DATA.chapters.filter(function (c) { return c.subject === 'Maths'; }).reduce(function (n, c) { return n + c.count; }, 0);
+    var physics = DATA.questions.length - maths;
+
+    var chapterHtml = ['Maths', 'Physics'].map(function (sub) {
+      var chips = DATA.chapters.filter(function (c) { return c.subject === sub; }).map(function (c) {
+        return '<label class="chip"><input type="checkbox" name="chapter" data-subject="' + sub + '" value="' + c.id + '"><span>' +
+          esc(c.title.replace(/^\d+\.\s*/, '')) + '<small>' + c.count + '</small></span></label>';
+      }).join('');
+      return '<div class="chapter-group"><div class="chapter-head"><b>' + sub + '</b><span>' +
+        '<button type="button" class="link" data-action="chapters-all" data-arg="' + sub + '">Select all</button>' +
+        '<button type="button" class="link" data-action="chapters-none" data-arg="' + sub + '">Clear</button></span></div>' +
+        '<div class="chips">' + chips + '</div></div>';
+    }).join('');
+
+    var histHtml = hist.length ? hist.slice(0, 6).map(function (a) {
       var r = a.result;
-      var kindTag = a.config.kind === 'reattempt' ? '<span class="tag warn">re-attempt</span>' : '';
+      var kindTag = a.config.kind === 'reattempt' ? '<span class="tag warn">Re-attempt</span>' : '';
       return '<div class="history-item"><div><div>' + kindTag + '<b>' + esc(a.title) + '</b></div>' +
-        '<div class="muted small">' + fmtDate(a.submittedAt) + ' &middot; score ' + r.score + '/' + r.max +
-        ' &middot; ' + r.correct + ' right, ' + r.wrong + ' wrong, ' + r.skipped + ' skipped</div></div>' +
+        '<div class="muted small"><span class="score-badge" style="color:var(--primary)">' + r.score + '/' + r.max + '</span>' +
+        fmtDate(a.submittedAt) + ' &middot; ' + r.correct + ' right &middot; ' + r.wrong + ' wrong &middot; ' + r.skipped + ' skipped</div></div>' +
         '<div class="row">' +
         '<button data-action="open-result" data-arg="' + a.id + '">Result</button>' +
         '<button data-action="open-review" data-arg="' + a.id + '">Solutions</button>' +
-        (r.wrong + r.skipped > 0 ? '<button data-action="reattempt" data-arg="' + a.id + '">Re-attempt</button>' : '') +
+        (r.wrong + r.skipped > 0 ? '<button class="soft" data-action="reattempt" data-arg="' + a.id + '">Re-attempt</button>' : '') +
         '</div></div>';
-    }).join('') : '<p class="muted">No attempts yet. Take a mock test to see your history here.</p>';
+    }).join('') : '<div class="empty">No attempts yet. Take a mock test and your results will show up here.</div>';
 
     var resume = '';
     if (current) {
-      resume = '<div class="card" style="border-color:var(--warn)"><div class="row spread"><div><b>Test in progress:</b> ' +
-        esc(current.title) + '<div class="muted small">Answered ' + Object.keys(current.answers).length + ' of ' + current.qids.length + '</div></div>' +
+      resume = '<div class="card" style="border-color:var(--warn)"><div class="row spread"><div><b>Test in progress</b><div>' +
+        esc(current.title) + '</div><div class="muted small">Answered ' + Object.keys(current.answers).length + ' of ' + current.qids.length + '</div></div>' +
         '<div class="row"><button class="primary" data-action="resume">Resume</button>' +
         '<button data-action="discard">Discard</button></div></div></div>';
     }
 
     app.innerHTML = resume +
-      '<div class="card"><h2>AAI JE (Airport Operations) - Maths &amp; Physics</h2>' +
-      '<p class="muted">' + DATA.questions.length + ' real past-paper questions. Tick your answers, submit, then open the solutions. ' +
-      'Wrong or skipped ones can be re-attempted any time.</p></div>' +
+      '<div class="hero"><h1>AAI JE Airport Operations<br>Maths &amp; Physics mock tests</h1>' +
+      '<p>Real past-paper questions. Tick your answers, submit, then open the solutions one by one. Re-attempt whatever you missed.</p>' +
+      '<div class="hero-stats"><div class="hero-stat"><b>' + DATA.questions.length + '</b><span>questions</span></div>' +
+      '<div class="hero-stat"><b>' + maths + ' / ' + physics + '</b><span>maths / physics</span></div>' +
+      '<div class="hero-stat"><b>' + DATA.chapters.length + '</b><span>chapters</span></div></div></div>' +
       '<div class="grid-2">' +
-      '<div class="card"><h3>Full mock test</h3>' +
-      '<form id="mock-form">' +
-      '<label class="field">Subject<select name="subject">' + subjectOpts + '</select></label>' +
-      '<label class="field">Length<select name="count">' + countOpts + '</select></label>' +
-      '<label class="field">Timer<select name="time">' + timeOpts + '</select></label>' +
-      '<label class="field">Marking<select name="neg">' + negOpts + '</select></label>' +
-      '<button class="primary" type="submit">Start mock test</button></form></div>' +
-      '<div class="card"><h3>Chapter-wise practice</h3>' +
-      '<form id="chapter-form"><div class="chapter-list">' + chapterHtml + '</div>' +
-      '<label class="check" style="margin-top:10px"><input type="checkbox" name="shuffle"' + (s.shuffle ? ' checked' : '') + '> Shuffle questions</label>' +
-      '<p class="muted small">Uses the timer and marking chosen in the mock form.</p>' +
-      '<button class="primary" type="submit">Start practice</button></form></div></div>' +
-      '<div class="card"><div class="row spread"><div><h3>Mistake bank</h3>' +
-      '<div class="muted small">Questions whose latest result was wrong or skipped: <b>' + mistakes + '</b></div></div>' +
+      '<div class="card"><h3>Full mock test</h3><form id="mock-form">' +
+      '<div class="field-label">Subject</div>' + chipGroup('subject', [['Maths', 'Maths'], ['Physics', 'Physics'], ['Mixed', 'Mixed']], s.subject) +
+      '<div class="field-label">Questions</div>' + chipGroup('count', [[10, '10'], [20, '20'], [30, '30'], [50, '50'], [0, 'All']], s.count) +
+      '<div class="field-label">Timer</div>' + chipGroup('time', [[0, 'Off'], [0.5, '30 s / Q'], [1, '1 min / Q'], [2, '2 min / Q']], s.perQuestionMinutes) +
+      '<div class="field-label">Negative marking</div>' + chipGroup('neg', [[0, 'None'], [0.25, '-0.25'], [0.33, '-0.33'], [1, '-1']], s.negative) +
+      '<div style="margin-top:22px"><button class="primary big block" type="submit">Start mock test</button></div></form></div>' +
+      '<div><div class="card"><div class="row spread"><div><h3 style="margin-bottom:4px">Mistake bank</h3>' +
+      '<div class="muted small">Latest result wrong or skipped: <b style="color:var(--text)">' + mistakes + '</b> questions</div></div>' +
       '<button class="primary" data-action="mistakes"' + (mistakes ? '' : ' disabled') + '>Practice my mistakes</button></div></div>' +
-      '<div class="card"><div class="row spread"><h3>Attempt history</h3>' +
-      (hist.length ? '<button class="ghost" data-action="clear-history">Clear history</button>' : '') + '</div>' + histHtml + '</div>';
+      '<div class="card"><div class="row spread" style="margin-bottom:14px"><h3 style="margin:0">Attempt history</h3>' +
+      (hist.length ? '<button class="link danger" data-action="clear-history">Clear</button>' : '') + '</div>' + histHtml + '</div></div></div>' +
+      '<div class="card"><h3>Chapter-wise practice</h3><form id="chapter-form"><div class="chapter-cols">' + chapterHtml + '</div>' +
+      '<div class="row spread" style="margin-top:20px"><label class="check" style="margin:0"><input type="checkbox" name="shuffle"' + (s.shuffle ? ' checked' : '') + '> Shuffle questions' +
+      '<span class="muted small">&nbsp;&middot; timer and negative marking follow the mock-test settings</span></label>' +
+      '<button class="primary big" type="submit">Start practice</button></div></form></div>';
   }
 
   /* ---------- rendering: test ---------- */
   function paletteClass(qid, i) {
     var cls = 'pbtn';
     var answered = current.answers[qid] !== undefined;
-    var marked = current.marked[qid];
-    if (marked) cls += ' marked';
+    if (current.marked[qid]) cls += ' marked';
     else if (answered) cls += ' answered';
     else if (current.visited[qid]) cls += ' skipped';
     if (i === view.i) cls += ' current';
@@ -309,34 +308,35 @@
     current.visited[qid] = true;
     var chosen = current.answers[qid];
     var opts = q.options.map(function (o, idx) {
-      var sel = chosen === idx ? ' selected' : '';
-      return '<div class="option' + sel + '" data-action="choose" data-arg="' + idx + '">' +
-        '<span class="box">' + LETTERS[idx] + '</span><span>' + o + '</span></div>';
+      return '<div class="option' + (chosen === idx ? ' selected' : '') + '" data-action="choose" data-arg="' + idx + '">' +
+        '<span class="box">' + LETTERS[idx] + '</span><span class="label">' + o + '</span></div>';
     }).join('');
     var palette = current.qids.map(function (id, i) {
       return '<div class="' + paletteClass(id, i) + '" data-action="goto" data-arg="' + i + '">' + (i + 1) + '</div>';
     }).join('');
     var answeredCount = Object.keys(current.answers).length;
-    var isLast = view.i === current.qids.length - 1;
-    var tagSource = q.source ? '<span class="tag">' + esc(q.source) + '</span>' : '';
+    var total = current.qids.length;
+    var isLast = view.i === total - 1;
 
-    topExtra.innerHTML = current.endsAt ? '<span class="timer" id="timer"></span>' : '<span class="muted small">No timer</span>';
+    topExtra.innerHTML = current.endsAt ? '<span class="timer-pill" id="timer"></span>' : '<span class="muted small">No timer</span>';
 
-    app.innerHTML = '<div class="test-layout"><div class="card">' +
-      '<div class="qhead"><div><span class="tag">' + q.subject + '</span><span class="tag">' + esc(CHAPTERS[q.chapter].title) + '</span>' + tagSource + '</div>' +
-      '<b>Q ' + (view.i + 1) + ' / ' + current.qids.length + '</b></div>' +
+    app.innerHTML = '<div class="progress"><i style="width:' + Math.round(answeredCount * 100 / total) + '%"></i></div>' +
+      '<div class="test-layout"><div class="card">' +
+      '<div class="qhead"><div><span class="tag">' + q.subject + '</span><span class="tag plain">' + esc(CHAPTERS[q.chapter].title.replace(/^\d+\.\s*/, '')) + '</span></div>' +
+      '<div class="qnum">Question <b>' + (view.i + 1) + '</b> of ' + total + '</div></div>' +
       '<div class="qtext">' + q.q + '</div>' + opts +
-      '<div class="nav">' +
-      '<button data-action="prev"' + (view.i === 0 ? ' disabled' : '') + '>Previous</button>' +
-      '<button data-action="clear"' + (chosen === undefined ? ' disabled' : '') + '>Clear response</button>' +
+      '<div class="actions">' +
+      '<button data-action="prev"' + (view.i === 0 ? ' disabled' : '') + '>&larr; Previous</button>' +
       '<button data-action="mark">' + (current.marked[qid] ? 'Unmark review' : 'Mark for review') + '</button>' +
-      '<button class="primary" data-action="next"' + (isLast ? ' disabled' : '') + '>Save &amp; next</button></div></div>' +
-      '<div class="card"><h3>' + esc(current.title) + '</h3>' +
-      '<div class="muted small" style="margin-bottom:8px">Answered ' + answeredCount + ' / ' + current.qids.length + '</div>' +
+      '<button data-action="clear"' + (chosen === undefined ? ' disabled' : '') + '>Clear</button>' +
+      '<span class="spacer"></span>' +
+      '<button class="primary" data-action="next"' + (isLast ? ' disabled' : '') + '>Save &amp; next &rarr;</button></div></div>' +
+      '<div class="side"><div class="card"><h3>' + esc(current.title) + '</h3>' +
+      '<div class="muted small" style="margin:-8px 0 14px">Answered ' + answeredCount + ' of ' + total + '</div>' +
       '<div class="palette">' + palette + '</div>' +
       '<div class="legend"><span style="--c:var(--good)">Answered</span><span style="--c:var(--bad)">Not answered</span>' +
       '<span style="--c:var(--mark)">Marked</span><span style="--c:var(--line)">Not visited</span></div>' +
-      '<div style="margin-top:14px"><button class="primary" data-action="submit" style="width:100%">Submit test</button></div></div></div>';
+      '<div style="margin-top:18px"><button class="primary big block" data-action="submit">Submit test</button></div></div></div></div>';
     save(KEY_CURRENT, current);
     if (current.endsAt) tick();
   }
@@ -345,11 +345,13 @@
     var total = current.qids.length;
     var answered = Object.keys(current.answers).length;
     var marked = Object.keys(current.marked).filter(function (k) { return current.marked[k]; }).length;
-    modalRoot.innerHTML = '<div class="modal-back"><div class="modal"><h3>Submit test?</h3>' +
-      '<p>Answered <b>' + answered + '</b> of ' + total + '. Not answered: <b>' + (total - answered) + '</b>. Marked for review: <b>' + marked + '</b>.</p>' +
-      '<p class="muted small">Solutions open after you submit.</p>' +
-      '<div class="row"><button class="primary" data-action="confirm-submit">Yes, submit</button>' +
-      '<button data-action="cancel-modal">Keep working</button></div></div></div>';
+    modalRoot.innerHTML = '<div class="modal-back"><div class="modal"><h3>Submit your test?</h3>' +
+      '<div class="muted">You will not be able to change your answers after this.</div>' +
+      '<div class="modal-stats"><div class="stat good"><b>' + answered + '</b>Answered</div>' +
+      '<div class="stat bad"><b>' + (total - answered) + '</b>Not answered</div>' +
+      '<div class="stat"><b>' + marked + '</b>Marked</div></div>' +
+      '<div class="row"><button class="primary big" data-action="confirm-submit">Yes, submit</button>' +
+      '<button class="big" data-action="cancel-modal">Keep working</button></div></div></div>';
   }
 
   /* ---------- rendering: result ---------- */
@@ -358,6 +360,8 @@
     if (!a) { view.screen = 'home'; render(); return; }
     var r = a.result;
     var accuracy = r.correct + r.wrong ? Math.round(r.correct * 100 / (r.correct + r.wrong)) : 0;
+    var pc = r.max ? r.correct * 100 / r.max : 0;
+    var pw = r.max ? r.wrong * 100 / r.max : 0;
 
     var byChapter = {};
     a.qids.forEach(function (qid) {
@@ -368,49 +372,50 @@
     });
     var rows = Object.keys(byChapter).map(function (ch) {
       var row = byChapter[ch];
-      return '<tr><td>' + esc(CHAPTERS[ch].title) + '</td><td class="num">' + row.c + '</td><td class="num">' + row.w +
-        '</td><td class="num">' + row.s + '</td><td class="num">' + (row.c + row.w + row.s) + '</td></tr>';
+      var t = row.c + row.w + row.s;
+      return '<tr><td>' + esc(CHAPTERS[ch].title.replace(/^\d+\.\s*/, '')) + '</td>' +
+        '<td><div class="bar"><i class="g" style="width:' + row.c * 100 / t + '%"></i><i class="r" style="width:' + row.w * 100 / t + '%"></i><i class="y" style="width:' + row.s * 100 / t + '%"></i></div></td>' +
+        '<td class="num">' + row.c + '/' + t + '</td></tr>';
     }).join('');
 
     var compare = '';
     if (a.config.reattemptOf) {
       var fixed = a.qids.filter(function (qid) { return qStatus(a, qid) === 'correct'; }).length;
-      compare = '<p><span class="tag good">Re-attempt</span> You fixed <b>' + fixed + '</b> of the ' + a.qids.length +
-        ' questions you missed last time.</p>';
+      compare = '<p><span class="tag good">Re-attempt</span> You fixed <b>' + fixed + '</b> of the ' + a.qids.length + ' questions you missed last time.</p>';
     }
     var timeNote = a.autoSubmitted ? ' (auto-submitted when the timer ended)' : '';
 
     topExtra.innerHTML = '';
-    app.innerHTML = '<div class="card"><h2>' + esc(a.title) + '</h2>' +
-      '<div class="muted small" style="margin-bottom:12px">' + fmtDate(a.submittedAt) + ' &middot; time taken ' + fmtTime(a.timeSpent) + timeNote + '</div>' +
-      compare +
-      '<div class="score-grid">' +
-      '<div class="stat"><b>' + r.score + ' / ' + r.max + '</b>Score</div>' +
-      '<div class="stat"><b style="color:var(--good)">' + r.correct + '</b>Correct</div>' +
-      '<div class="stat"><b style="color:var(--bad)">' + r.wrong + '</b>Wrong</div>' +
-      '<div class="stat"><b style="color:var(--warn)">' + r.skipped + '</b>Skipped</div>' +
-      '<div class="stat"><b>' + accuracy + '%</b>Accuracy</div></div>' +
-      '<div class="row" style="margin-top:16px">' +
-      '<button class="primary" data-action="open-review" data-arg="' + a.id + '">Open solutions</button>' +
-      (r.wrong + r.skipped > 0 ? '<button data-action="reattempt" data-arg="' + a.id + '">Re-attempt wrong &amp; skipped (' + (r.wrong + r.skipped) + ')</button>' : '') +
-      '<button data-action="retake" data-arg="' + a.id + '">Retake whole test</button>' +
-      '<button data-action="home">Home</button></div></div>' +
-      '<div class="card"><h3>Chapter-wise</h3><table class="tbl"><thead><tr><th>Chapter</th><th class="num">Right</th><th class="num">Wrong</th><th class="num">Skipped</th><th class="num">Total</th></tr></thead><tbody>' +
+    app.innerHTML = '<div class="card"><div class="result-top">' +
+      '<div class="donut" style="--a:' + pc + '%;--b:' + (pc + pw) + '%"><div><b>' + r.score + '</b><span>out of ' + r.max + '</span></div></div>' +
+      '<div><h2 style="font-size:22px">' + esc(a.title) + '</h2>' +
+      '<div class="muted small" style="margin:4px 0 8px">' + fmtDate(a.submittedAt) + ' &middot; time taken ' + fmtTime(a.timeSpent) + timeNote + '</div>' + compare +
+      '<div class="score-grid"><div class="stat good"><b>' + r.correct + '</b>Correct</div>' +
+      '<div class="stat bad"><b>' + r.wrong + '</b>Wrong</div>' +
+      '<div class="stat warn"><b>' + r.skipped + '</b>Skipped</div>' +
+      '<div class="stat"><b>' + accuracy + '%</b>Accuracy</div></div></div></div>' +
+      '<div class="row" style="margin-top:20px">' +
+      '<button class="primary big" data-action="open-review" data-arg="' + a.id + '">Review &amp; solutions</button>' +
+      (r.wrong + r.skipped > 0 ? '<button class="big soft" data-action="reattempt" data-arg="' + a.id + '">Re-attempt wrong &amp; skipped (' + (r.wrong + r.skipped) + ')</button>' : '') +
+      '<button class="big" data-action="retake" data-arg="' + a.id + '">Retake whole test</button>' +
+      '<button class="big" data-action="home">Home</button></div></div>' +
+      '<div class="card"><h3>Chapter-wise</h3><table class="tbl"><thead><tr><th>Chapter</th><th></th><th class="num">Correct</th></tr></thead><tbody>' +
       rows + '</tbody></table></div>';
   }
 
   /* ---------- rendering: review / solutions ---------- */
   function solutionHtml(q) {
     var parts = ['<div class="solution">'];
-    if (q.given) parts.push('<h4>Given:</h4><div>' + q.given + '</div>');
-    if (q.concept) parts.push('<h4>Concept:</h4><div>' + q.concept + '</div>');
-    if (q.formula) parts.push('<h4>Formula used:</h4><div>' + q.formula + '</div>');
+    if (q.given) parts.push('<div class="sol-block"><h4>Given</h4><div>' + q.given + '</div></div>');
+    if (q.concept) parts.push('<div class="sol-block"><h4>Concept</h4><div>' + q.concept + '</div></div>');
+    if (q.formula) parts.push('<div class="sol-block"><h4>Formula used</h4><div>' + q.formula + '</div></div>');
     if (q.steps.length) {
-      parts.push('<h4>Calculation:</h4><ol>' + q.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('') + '</ol>');
+      parts.push('<div class="sol-block"><h4>Calculation</h4><ol class="sol-steps">' +
+        q.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('') + '</ol></div>');
     }
     parts.push('<div class="hence">Hence, option ' + LETTERS[q.correct] + ' is correct.</div>');
-    if (q.info) parts.push('<div class="box-info"><b>Good to know:</b> ' + q.info + '</div>');
-    if (q.trick) parts.push('<div class="box-trick"><b>Quick trick:</b> ' + q.trick + '</div>');
+    if (q.info) parts.push('<div class="note info"><b>Good to know</b>' + q.info + '</div>');
+    if (q.trick) parts.push('<div class="note trick"><b>Quick trick</b>' + q.trick + '</div>');
     parts.push('</div>');
     return parts.join('');
   }
@@ -428,14 +433,20 @@
     var q = QUESTIONS[qid];
     var st = qStatus(a, qid);
     var mine = a.answers[qid];
+    var shown = !!(view.shown && view.shown[qid]);
 
+    // the correct option stays hidden until the user asks for the solution
     var opts = q.options.map(function (o, idx) {
       var cls = 'option static';
       var note = '';
-      if (idx === q.correct) { cls += ' correct'; note = ' <span class="tag good">correct</span>'; }
-      else if (idx === mine) { cls += ' wrong'; note = ' <span class="tag bad">your answer</span>'; }
-      if (idx === q.correct && idx === mine) note = ' <span class="tag good">correct &middot; your answer</span>';
-      return '<div class="' + cls + '"><span class="box">' + LETTERS[idx] + '</span><span>' + o + note + '</span></div>';
+      if (shown && idx === q.correct) {
+        cls += ' correct';
+        note = idx === mine ? '<span class="tag good">Correct &middot; your answer</span>' : '<span class="tag good">Correct answer</span>';
+      } else if (idx === mine) {
+        if (shown) { cls += ' wrong'; note = '<span class="tag bad">Your answer</span>'; }
+        else { cls += ' yours'; note = '<span class="tag">Your answer</span>'; }
+      }
+      return '<div class="' + cls + '"><span class="box">' + LETTERS[idx] + '</span><span class="label">' + o + '</span>' + note + '</div>';
     }).join('');
 
     var palette = list.map(function (id, i) {
@@ -445,24 +456,31 @@
     }).join('');
 
     var filters = [['all', 'All'], ['wrong', 'Wrong'], ['skipped', 'Skipped'], ['correct', 'Correct']].map(function (f) {
-      return '<button class="' + (f[0] === filter ? 'primary' : '') + '" data-action="filter" data-arg="' + f[0] + '">' + f[1] + '</button>';
+      return '<label class="chip"><input type="radio" name="rf" value="' + f[0] + '"' + (f[0] === filter ? ' checked' : '') +
+        ' data-action="filter" data-arg="' + f[0] + '"><span>' + f[1] + '</span></label>';
     }).join('');
-    var stTag = st === 'correct' ? '<span class="tag good">Correct</span>' : st === 'wrong' ? '<span class="tag bad">Wrong</span>' : '<span class="tag warn">Skipped</span>';
+    var stTag = st === 'correct' ? '<span class="tag good">You got it right</span>' : st === 'wrong' ? '<span class="tag bad">You got it wrong</span>' : '<span class="tag warn">Skipped</span>';
+
+    var body = shown
+      ? solutionHtml(q) + '<div style="margin-top:14px"><button class="link" data-action="toggle-solution" data-arg="' + qid + '">Hide solution</button></div>'
+      : '<div class="reveal"><div class="muted" style="margin-bottom:10px">Try it again in your head first, then check.</div>' +
+        '<button class="primary big" data-action="toggle-solution" data-arg="' + qid + '">Show solution</button></div>';
 
     topExtra.innerHTML = '';
-    app.innerHTML = '<div class="card"><div class="row spread"><h3 style="margin:0">Solutions: ' + esc(a.title) + '</h3>' +
-      '<div class="row">' + filters + '<button data-action="open-result" data-arg="' + a.id + '">Back to result</button></div></div></div>' +
+    app.innerHTML = '<div class="row spread" style="margin-bottom:16px"><div><h2 style="font-size:20px">Review: ' + esc(a.title) + '</h2></div>' +
+      '<button data-action="open-result" data-arg="' + a.id + '">&larr; Back to result</button></div>' +
       '<div class="test-layout"><div class="card">' +
-      '<div class="qhead"><div>' + stTag + '<span class="tag">' + q.subject + '</span><span class="tag">' + esc(CHAPTERS[q.chapter].title) + '</span>' +
-      (q.source ? '<span class="tag">' + esc(q.source) + '</span>' : '') + '</div>' +
-      '<b>Q ' + (a.qids.indexOf(qid) + 1) + '</b></div>' +
-      '<div class="qtext">' + q.q + '</div>' + opts + solutionHtml(q) +
-      '<div class="nav"><button data-action="prev"' + (view.i === 0 ? ' disabled' : '') + '>Previous</button>' +
-      '<button class="primary" data-action="next"' + (view.i === list.length - 1 ? ' disabled' : '') + '>Next</button></div></div>' +
-      '<div class="card"><h3>Questions (' + list.length + ')</h3><div class="palette">' + palette + '</div>' +
+      '<div class="qhead"><div>' + stTag + '<span class="tag">' + q.subject + '</span><span class="tag plain">' + esc(CHAPTERS[q.chapter].title.replace(/^\d+\.\s*/, '')) + '</span>' +
+      (q.source ? '<span class="tag plain">' + esc(q.source) + '</span>' : '') + '</div>' +
+      '<div class="qnum">Question <b>' + (a.qids.indexOf(qid) + 1) + '</b></div></div>' +
+      '<div class="qtext">' + q.q + '</div>' + opts + body +
+      '<div class="actions"><button data-action="prev"' + (view.i === 0 ? ' disabled' : '') + '>&larr; Previous</button><span class="spacer"></span>' +
+      '<button class="primary" data-action="next"' + (view.i === list.length - 1 ? ' disabled' : '') + '>Next &rarr;</button></div></div>' +
+      '<div class="side"><div class="card"><h3>Show</h3><div class="chips">' + filters + '</div>' +
+      '<div class="field-label" style="margin-top:20px">Questions (' + list.length + ')</div><div class="palette">' + palette + '</div>' +
       '<div class="legend"><span style="--c:var(--good)">Correct</span><span style="--c:var(--bad)">Wrong</span><span style="--c:var(--warn)">Skipped</span></div>' +
-      '<div style="margin-top:14px" class="row">' +
-      (a.result.wrong + a.result.skipped > 0 ? '<button data-action="reattempt" data-arg="' + a.id + '">Re-attempt wrong &amp; skipped</button>' : '') +
+      (a.result.wrong + a.result.skipped > 0
+        ? '<div style="margin-top:18px"><button class="soft block" data-action="reattempt" data-arg="' + a.id + '">Re-attempt wrong &amp; skipped</button></div>' : '') +
       '</div></div></div>';
   }
 
@@ -549,8 +567,19 @@
         render();
         break;
       case 'open-review':
-        view = { screen: 'review', i: 0, reviewFilter: 'all', attemptId: arg };
+        view = { screen: 'review', i: 0, reviewFilter: 'all', attemptId: arg, shown: {} };
         render();
+        break;
+      case 'toggle-solution':
+        view.shown = view.shown || {};
+        if (view.shown[arg]) delete view.shown[arg]; else view.shown[arg] = true;
+        rerenderKeepScroll();
+        break;
+      case 'chapters-all':
+      case 'chapters-none':
+        Array.prototype.forEach.call(document.querySelectorAll('input[name=chapter][data-subject=' + arg + ']'), function (box) {
+          box.checked = action === 'chapters-all';
+        });
         break;
       case 'filter':
         view.reviewFilter = arg;

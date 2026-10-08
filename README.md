@@ -10,7 +10,7 @@ A small web app to practise real AAI Junior Executive past-paper questions (Clas
 - **Full mock test** - Maths, Physics or Mixed; pick the length, timer and negative marking.
 - **Chapter-wise practice** - pick one or more chapters.
 - **Tickable options** - click an option to tick it, click again (or "Clear response") to untick. Mark for review, question palette, keyboard shortcuts (`A`-`D` / `1`-`4` to answer, arrow keys to move).
-- **Submit, then solutions** - solutions stay hidden during the test and open after you submit. You can reopen them any time from the attempt history.
+- **Submit, then solutions** - solutions are hidden during the test. After you submit, open the review and click **Show solution** on a question to reveal the correct answer and the full working. Until you click, only your own answer is shown. You can reopen any past attempt's review from the history.
 - **Re-attempt mode** - re-attempt only the wrong and skipped questions of any attempt, retake the whole test, or practise your running **mistake bank** (questions whose latest result was wrong or skipped).
 - **History and resume** - results, chapter-wise breakdown, and a test in progress survive a page refresh.
 
