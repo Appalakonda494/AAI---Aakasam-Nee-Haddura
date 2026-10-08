@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 .playwright-mcp/
+# film-poster artwork stays local (not mine to publish)
+assets/hero.jpg
+assets/icon.png

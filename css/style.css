@@ -23,7 +23,7 @@
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Telugu", "Nirmala UI", Gautami, Roboto, Helvetica, Arial, sans-serif;
   font-size: 13px;
   line-height: 1.5;
   text-align: left;
@@ -43,8 +43,8 @@ sup, sub { line-height: 0; }
 }
 .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; color: var(--text); text-decoration: none; white-space: nowrap; }
 .logo {
-  width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center;
-  background: var(--primary); color: #fff; font-size: 10px; font-weight: 800;
+  width: 32px; height: 32px; border-radius: 50%; flex: 0 0 32px;
+  background: #c9b79c url(../assets/icon.png) center / cover no-repeat; border: 2px solid #5b3a29;
 }
 .nav-links { display: flex; gap: 2px; flex: 1; }
 .nav-links button { border: 0; background: none; min-height: 0; padding: 7px 12px; border-radius: 8px; }
@@ -288,3 +288,47 @@ table.tbl tr.click:hover td { background: var(--gray-bg); }
 .modal-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0 14px; }
 .tabs { scrollbar-width: none; }
 .tabs::-webkit-scrollbar { display: none; }
+
+/* ---------- telugu touches ---------- */
+@font-face { font-family: 'Anek Telugu'; font-weight: 800; font-style: normal; font-display: swap; src: url(../assets/fonts/AnekTelugu-ExtraBold.woff2) format('woff2'); }
+.te { font-weight: 700; letter-spacing: 0; }
+.brand .te, .hero-title, .page-title.te { font-family: 'Anek Telugu', 'Noto Sans Telugu', 'Nirmala UI', sans-serif; font-weight: 800; color: #5b3a29; }
+.brand .te { font-size: 17px; }
+.page-title.te { font-size: 26px; line-height: 1.3; }
+.quote { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; border-left: 4px solid var(--primary); }
+.quote .te { font-size: 15px; line-height: 1.6; color: var(--text); }
+.quote .label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text3); margin-bottom: 2px; }
+.te-note { font-size: 12px; color: var(--primary); margin-top: 6px; }
+.timer-note { font-size: 11px; font-weight: 600; color: var(--bad); }
+
+/* ---------- in-depth topic section ---------- */
+.deep { margin-top: 18px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.deep-head { background: var(--primary-soft); color: var(--primary); padding: 10px 14px; font-weight: 700; font-size: 13px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.deep-head small { font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; opacity: .75; }
+.deep-body { padding: 4px 16px 14px; }
+.deep-body p { margin: 10px 0 0; line-height: 1.65; }
+.deep-body h5 { margin: 14px 0 4px; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--text3); }
+.deep-body ul { margin: 0; padding-left: 18px; }
+.deep-body li { margin: 4px 0; line-height: 1.55; }
+.deep-body li::marker { color: var(--primary); }
+.deep-body .mistakes li::marker { color: var(--bad); }
+.deep-exam { margin-top: 12px; padding: 8px 12px; border-radius: 10px; background: var(--gray-bg); font-size: 12px; }
+
+details.deep > summary { list-style: none; cursor: pointer; }
+details.deep > summary::-webkit-details-marker { display: none; }
+details.deep > summary::after { content: "hide"; margin-left: auto; font-size: 10px; font-weight: 600; opacity: .6; }
+details.deep:not([open]) > summary::after { content: "show"; }
+.deep-link { margin-top: 12px; padding: 8px 12px; border-radius: 10px; background: var(--good-soft); color: var(--text); font-size: 12px; }
+.deep-body dl.terms { margin: 4px 0 0; }
+.deep-body dl.terms dt { font-weight: 700; margin-top: 8px; }
+.deep-body dl.terms dd { margin: 1px 0 0 0; color: var(--text2); }
+.deep-body ul.formulas li { font-variant-numeric: tabular-nums; }
+
+/* ---------- home banner (poster palette) ---------- */
+.hero { display: grid; grid-template-columns: 1fr 340px; background: #e8dcc8; border: 1px solid #d6c4a6; border-radius: 12px; overflow: hidden; margin-bottom: 14px; min-height: 170px; }
+.hero-text { padding: 20px 24px; display: flex; flex-direction: column; justify-content: center; }
+.hero-title { font-size: 34px; line-height: 1.25; filter: url(#rough); }
+.hero-sub { margin-top: 6px; font-size: 13px; font-weight: 600; color: #5b3a29; letter-spacing: .02em; }
+.hero-sub2 { margin-top: 2px; font-size: 12px; color: #7a5a44; }
+.hero-img { background: #d6c4a6 url(../assets/hero.jpg) center 30% / cover no-repeat; min-height: 150px; }
+@media (max-width: 760px) { .hero { grid-template-columns: 1fr; } .hero-img { min-height: 130px; order: -1; } .hero-title { font-size: 28px; } }

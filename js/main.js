@@ -3,7 +3,7 @@
   'use strict';
 
   var A = window.AAI;
-  var QUESTIONS = A.QUESTIONS, CHAPTERS = A.CHAPTERS, DATA = A.DATA, LETTERS = A.LETTERS, KEYS = A.KEYS;
+  var QUESTIONS = A.QUESTIONS, CHAPTERS = A.CHAPTERS, TOPICS = A.TOPICS, DATA = A.DATA, LETTERS = A.LETTERS, KEYS = A.KEYS;
   var esc = A.esc, fmtTime = A.fmtTime, fmtDate = A.fmtDate, chapterName = A.chapterName;
   var qStatus = A.qStatus, attempts = A.attempts, settings = A.settings;
 
@@ -17,6 +17,35 @@
   var inf = null;       // infinity session in progress
   var clock = { qid: null, start: 0 };
   var view = { screen: 'home', tab: 'full', i: 0, filter: 'all', shown: {} };
+
+  /* ---------- telugu motivation ---------- */
+  var QUOTES = [
+    'కష్టపడు… కాలర్ ఎగరేసే రోజు వస్తుంది!',
+    'గమ్యం గగనమే – పట్టుదలే రెక్కలు!',
+    'ఈరోజు చేసే ప్రాక్టీస్, రేపటి సెలెక్షన్!',
+    'తప్పులు తప్పు కాదు… అవే నీ టీచర్లు!',
+    'ఒక్కో ప్రశ్న, ఒక్కో అడుగు – గమ్యం దగ్గరే!',
+    'రోజుకి కొంచెం చదివినా చాలు – చివరికి గెలుపు నీదే!',
+    'నమ్మకం ఉంచు… నువ్వు చేయగలవు!',
+    'ఓటమి అంటే ఆగిపోవడం కాదు, ఇంకోసారి ప్రయత్నించడం!',
+    'కష్టం ఈరోజు, కిరీటం రేపు!',
+    'రన్‌వే మీద స్పీడ్ పెంచితేనే టేకాఫ్ – ప్రిపరేషన్ స్పీడ్ ఇప్పుడే పెంచు!',
+    'అలసిపోయినా సరే, అడుగు ముందుకే వెయ్యి!',
+    'సులువైనవి అందరూ చేస్తారు – కష్టమైనవి కొట్టినవాళ్లే టాపర్లు!',
+    'ఇప్పుడు పడే చెమట, రేపటి విజయం!'
+  ];
+  function dailyQuote(shift) {
+    var day = Math.floor(Date.now() / 86400000);
+    return QUOTES[(day + (shift || 0)) % QUOTES.length];
+  }
+  function resultMessage(a) {
+    var r = a.result, p = r.max ? r.correct * 100 / r.max : 0;
+    if (a.config.reattemptOf && r.correct > 0) return 'నిన్నటికంటే ఈరోజు బెటర్ – అదే అసలైన గెలుపు!';
+    if (p >= 85) return 'శభాష్! అదిరిపోయింది – ఇలాగే కొనసాగించు!';
+    if (p >= 65) return 'చాలా బాగుంది! ఇంకొంచెం కష్టపడితే టాప్ స్కోర్ నీదే.';
+    if (p >= 40) return 'పర్లేదు, పట్టు వస్తోంది! తప్పులను సొల్యూషన్స్‌లో చూసి మళ్లీ రాయి.';
+    return 'కంగారు పడకు! ఈ తప్పులే రేపటి మార్కులు – సొల్యూషన్స్ చూసి మళ్లీ ప్రయత్నించు.';
+  }
 
   /* ---------- small helpers ---------- */
   function go(next) {
@@ -122,6 +151,8 @@
     if (el) {
       el.textContent = fmtTime(left);
       el.className = 'timer-pill' + (left < 60 ? ' low' : '');
+      var note = document.getElementById('timer-note');
+      if (!note && left < 60 && el.parentNode) { note = document.createElement('span'); note.id = 'timer-note'; note.className = 'timer-note te'; note.textContent = 'టైమ్ తక్కువ – స్పీడ్ పెంచు!'; el.parentNode.insertBefore(note, el); }
     }
     if (left <= 0) submitCurrent(true);
   }
@@ -208,8 +239,35 @@
     var on = A.bookmarks()[qid];
     return '<button class="star' + (on ? ' on' : '') + '" data-action="bookmark" data-arg="' + qid + '" title="Bookmark this question">' + (on ? '&#9733; Bookmarked' : '&#9734; Bookmark') + '</button>';
   }
+  function bulletList(items, cls) {
+    return items.length ? '<ul' + (cls ? ' class="' + cls + '"' : '') + '>' + items.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' : '';
+  }
+  // the full note for one topic: everything the topic is about
+  function topicBody(t) {
+    var p = [];
+    t.overview.forEach(function (x) { p.push('<p>' + x + '</p>'); });
+    if (t.terms.length) p.push('<h5>Key terms</h5><dl class="terms">' + t.terms.map(function (x) { return '<dt>' + x.term + '</dt><dd>' + x.meaning + '</dd>'; }).join('') + '</dl>');
+    if (t.formulas.length) p.push('<h5>Formulas and results</h5>' + bulletList(t.formulas, 'formulas'));
+    if (t.how.length) { p.push('<h5>Why it works</h5>'); t.how.forEach(function (x) { p.push('<p>' + x + '</p>'); }); }
+    if (t.cases.length) p.push('<h5>Types, cases and properties</h5>' + bulletList(t.cases));
+    if (t.values.length) p.push('<h5>Values to remember</h5>' + bulletList(t.values));
+    if (t.uses.length) p.push('<h5>Where it is used</h5>' + bulletList(t.uses));
+    if (t.mistakes.length) p.push('<h5>Common mistakes</h5>' + bulletList(t.mistakes, 'mistakes'));
+    if (t.exam.length) p.push('<h5>In the exam and practice</h5>' + bulletList(t.exam));
+    return p.join('');
+  }
+  // collapsible "Additional info" block shown under every solution
+  function deepHtml(q) {
+    var t = q.topic && TOPICS[q.topic];
+    if (!t) return '';
+    return '<details class="deep" open><summary class="deep-head"><small>Additional info</small>' + t.title + '</summary><div class="deep-body">' +
+      (q.topicLink ? '<div class="deep-link"><b>In this question:</b> ' + q.topicLink + '</div>' : '') + topicBody(t) +
+      '<div style="margin-top:14px"><button class="sm soft" data-action="topic" data-arg="' + t.id + '">Open this topic as a full page</button></div></div></details>';
+  }
+  // order: shortcut trick, given, concept, formula, calculation, answer, good-to-know, then the in-depth topic notes
   function solutionHtml(q) {
     var parts = ['<div class="solution">'];
+    if (q.trick) parts.push('<div class="note trick"><b>Shortcut trick</b>' + q.trick + '</div>');
     if (q.given) parts.push('<div class="sol-block"><h4>Given</h4><div>' + q.given + '</div></div>');
     if (q.concept) parts.push('<div class="sol-block"><h4>Concept</h4><div>' + q.concept + '</div></div>');
     if (q.formula) parts.push('<div class="sol-block"><h4>Formula used</h4><div>' + q.formula + '</div></div>');
@@ -218,14 +276,14 @@
     }
     parts.push('<div class="hence">Hence, option ' + LETTERS[q.correct] + ' is correct.</div>');
     if (q.info) parts.push('<div class="note info"><b>Good to know</b>' + q.info + '</div>');
-    if (q.trick) parts.push('<div class="note trick"><b>Quick trick</b>' + q.trick + '</div>');
+    parts.push(deepHtml(q));
     parts.push('</div>');
     return parts.join('');
   }
   function revealBlock(q, shown) {
     return shown
       ? solutionHtml(q) + '<div style="margin-top:10px"><button class="link" data-action="toggle-solution" data-arg="' + q.id + '">Hide solution</button></div>'
-      : '<div class="reveal"><div class="muted" style="margin-bottom:10px">Think it through first, then check.</div>' +
+      : '<div class="reveal"><div class="muted" style="margin-bottom:4px">Think it through first, then check.</div><div class="te-note te" style="margin:0 0 10px">ఒక్కసారి నువ్వే ఆలోచించు, తర్వాత చూడు – అప్పుడే గుర్తుంటుంది!</div>' +
         '<button class="primary" data-action="toggle-solution" data-arg="' + q.id + '">Show solution</button></div>';
   }
   // options for review-style screens: the right answer stays hidden until the solution is opened
@@ -295,9 +353,13 @@
     }).join('') : '<div class="empty">No attempts yet. Pick a test above and your results will show up here.</div>';
 
     app.innerHTML = banner +
-      '<div class="page-head"><div><div class="page-title">AAI JE Airport Operations - Maths &amp; Physics</div>' +
-      '<div class="page-sub">Real past-paper questions. Take a test, review the solutions, and see where to focus.</div></div>' +
-      '<button class="soft" data-action="insights">View my analysis</button></div>' +
+      '<div class="hero"><div class="hero-text"><div class="hero-title">ఆకాశం నీ హద్దురా!</div>' +
+      '<div class="hero-sub">AAI JE Airport Operations &middot; Maths &amp; Physics mock tests</div>' +
+      '<div class="hero-sub2">Take a test, open the solutions one by one, and see exactly where to focus.</div>' +
+      '<div class="row" style="margin-top:14px"><button class="primary" data-action="tab" data-arg="full">Start a test</button><button class="soft" data-action="insights">View my analysis</button></div></div>' +
+      '<div class="hero-img"></div></div>' +
+      '<div class="card quote"><div><div class="label">నేటి మాట</div><div class="te" id="quote-text">' + dailyQuote(view.quoteShift) + '</div></div>' +
+      '<button class="sm" data-action="quote">ఇంకోటి</button></div>' +
       '<div class="kpis"><div class="kpi"><b>' + DATA.questions.length + '</b><span>questions in bank</span></div>' +
       '<div class="kpi pri"><b>' + st.unique + '</b><span>practised so far</span></div>' +
       '<div class="kpi good"><b>' + acc + '</b><span>overall accuracy</span></div>' +
@@ -429,7 +491,7 @@
     var total = current.qids.length;
     var answered = Object.keys(current.answers).length;
     var marked = Object.keys(current.marked).filter(function (k) { return current.marked[k]; }).length;
-    modalRoot.innerHTML = '<div class="modal-back"><div class="modal"><h3>Submit your test?</h3><div class="muted">You cannot change your answers after this.</div>' +
+    modalRoot.innerHTML = '<div class="modal-back"><div class="modal"><h3>Submit your test?</h3><div class="muted">You cannot change your answers after this.</div><div class="te-note te">ధైర్యంగా సబ్మిట్ చెయ్యి – ఆల్ ది బెస్ట్!</div>' +
       '<div class="modal-stats"><div class="stat good"><b>' + answered + '</b>Answered</div><div class="stat bad"><b>' + (total - answered) + '</b>Not answered</div><div class="stat"><b>' + marked + '</b>Marked</div></div>' +
       '<div class="row"><button class="primary big" data-action="confirm-submit">Yes, submit</button><button class="big" data-action="cancel-modal">Keep working</button></div></div></div>';
   }
@@ -465,7 +527,7 @@
     topExtra.innerHTML = '<span class="tag mark" style="margin:0">Infinity &middot; round ' + inf.cycle + '</span>';
     app.innerHTML = '<div class="card"><div class="live"><div><b>' + n + '</b>answered</div><div><b>' + correct + '</b>correct</div>' +
       '<div><b>' + (n ? pct(correct / n) + '%' : '-') + '</b>accuracy</div><div><b>' + inf.streak + '</b>streak</div><div><b>' + inf.best + '</b>best streak</div>' +
-      '<span style="flex:1"></span><button class="primary" data-action="inf-end">End session</button></div></div>' +
+      '<span style="flex:1"></span><button class="primary" data-action="inf-end">End session</button></div>' + infMood(inf, checked, mine, q) + '</div>' +
       '<div class="card"><div class="qhead"><div>' + verdict + tagsFor(q) + '</div><div class="qnum">Question <b>' + (inf.i + 1) + '</b></div></div>' +
       '<div class="qtext">' + q.q + '</div>' + opts +
       (checked ? revealBlock(q, shown) : '') +
@@ -474,6 +536,11 @@
         ? '<button data-action="inf-skip">Skip</button><button class="primary" data-action="inf-check"' + (mine === undefined ? ' disabled' : '') + '>Check answer</button>'
         : '<button class="primary" data-action="inf-next">Next question &rarr;</button>') + '</div></div>';
     A.save(KEYS.infinity, inf);
+  }
+  function infMood(session, checked, mine, q) {
+    if (!checked) return '';
+    if (mine === q.correct) return session.streak >= 3 ? '<div class="te-note te">ఫైర్‌లో ఉన్నావ్! ' + session.streak + ' వరుసగా సరైనవి – ఆగకు!</div>' : '<div class="te-note te">సూపర్! సరైన సమాధానం.</div>';
+    return '<div class="te-note te">పర్లేదు, తర్వాతి ప్రశ్న నీదే! తప్పు నుంచే నేర్చుకుంటాం.</div>';
   }
   function infCheck(skip) {
     var qid = inf.qids[inf.i];
@@ -530,7 +597,8 @@
       '<div><div class="section-title">' + esc(a.title) + '</div><div class="muted small" style="margin:2px 0 8px">' + fmtDate(a.submittedAt) + ' &middot; time ' + fmtTime(a.timeSpent) +
       (avg ? ' &middot; avg ' + avg + 's per question' : '') + (a.autoSubmitted ? ' &middot; auto-submitted when time ended' : '') + '</div>' +
       '<div class="score-grid"><div class="stat good"><b>' + r.correct + '</b>Correct</div><div class="stat bad"><b>' + r.wrong + '</b>Wrong</div>' +
-      '<div class="stat warn"><b>' + r.skipped + '</b>Skipped</div><div class="stat"><b>' + accuracy + '%</b>Accuracy</div></div></div></div>' +
+      '<div class="stat warn"><b>' + r.skipped + '</b>Skipped</div><div class="stat"><b>' + accuracy + '%</b>Accuracy</div></div>' +
+      '<div class="te-note te">' + resultMessage(a) + '</div></div></div>' +
       '<div class="row" style="margin-top:16px"><button class="primary big" data-action="open-review" data-arg="' + a.id + '">Review &amp; solutions</button>' +
       (r.wrong + r.skipped > 0 ? '<button class="big soft" data-action="reattempt" data-arg="' + a.id + '">Re-attempt wrong &amp; skipped (' + (r.wrong + r.skipped) + ')</button>' : '') +
       '<button class="big" data-action="retake" data-arg="' + a.id + '">Retake whole test</button><button class="big" data-action="home">Home</button></div></div>' +
@@ -607,7 +675,7 @@
     var T = st.totals;
     topExtra.innerHTML = '';
     if (!T.attempts) {
-      app.innerHTML = '<div class="page-head"><div class="page-title">My analysis</div></div><div class="card"><div class="empty">Take a test first. This page then shows where you are losing marks and which chapters to work on.</div>' +
+      app.innerHTML = '<div class="page-head"><div class="page-title">My analysis</div></div><div class="card"><div class="empty">Take a test first. This page then shows where you are losing marks and which chapters to work on.<div class="te-note te">మొదటి టెస్ట్ రాయి – అక్కడినుంచే ప్రయాణం మొదలు!</div></div>' +
         '<div style="text-align:center"><button class="primary" data-action="home">Go to tests</button></div></div>' + dataTools();
       return;
     }
@@ -615,10 +683,10 @@
     var avgT = T.timeN ? T.time / T.timeN : 0;
     var skipRate = T.presented ? T.skipped / T.presented : 0, wrongRate = T.presented ? T.wrong / T.presented : 0;
     var tips = [];
-    if (wrongRate >= 0.3) tips.push('<div class="tip bad"><b>' + pct(wrongRate) + '% of your answers are wrong.</b> That points to concept gaps, not speed. Open your weakest chapters below and read the concepts before taking more tests.</div>');
-    if (skipRate >= 0.2) tips.push('<div class="tip warn"><b>You leave ' + pct(skipRate) + '% of questions unanswered.</b> Practise eliminating two options and guessing between the rest' + (settings().negative ? ' (with the marking you set, weigh the penalty first)' : '') + '.</div>');
+    if (wrongRate >= 0.3) tips.push('<div class="tip bad"><b>' + pct(wrongRate) + '% of your answers are wrong.</b> That points to concept gaps, not speed. Open your weakest chapters below and read the concepts before taking more tests.<div class="te-note te">కాన్సెప్ట్ మీద ఫోకస్ పెట్టు – స్పీడ్ తర్వాత దానంతట అదే వస్తుంది.</div></div>');
+    if (skipRate >= 0.2) tips.push('<div class="tip warn"><b>You leave ' + pct(skipRate) + '% of questions unanswered.</b> Practise eliminating two options and guessing between the rest' + (settings().negative ? ' (with the marking you set, weigh the penalty first)' : '') + '.<div class="te-note te">తెలిసినంత వరకు ప్రయత్నించు – ఖాళీ వదలొద్దు!</div></div>');
     if (avgT > 90) tips.push('<div class="tip warn"><b>You average ' + Math.round(avgT) + 's per question.</b> The exam gives roughly a minute each. Learn the quick tricks for the chapters marked slow below.</div>');
-    if (acc >= 0.75 && wrongRate < 0.2) tips.push('<div class="tip good"><b>Strong overall (' + pct(acc) + '%).</b> Keep the weak chapters moving and revisit your mistake bank.</div>');
+    if (acc >= 0.75 && wrongRate < 0.2) tips.push('<div class="tip good"><b>Strong overall (' + pct(acc) + '%).</b> Keep the weak chapters moving and revisit your mistake bank.<div class="te-note te">అదరగొడుతున్నావ్! ఇదే జోరు కొనసాగించు.</div></div>');
 
     var focusHtml = f.seen.length ? f.seen.map(function (c, i) {
       return '<div class="focus-item"><div class="focus-main"><span class="focus-rank">' + (i + 1) + '</span><div><b>' + esc(chapterName(c.id)) + '</b> <span class="tag plain">' + c.subject + '</span>' + statusTag(c.status) +
@@ -656,6 +724,37 @@
     return '<div class="card"><div class="card-head" style="margin:0"><div><div class="section-title">Your data</div><div class="muted small">Everything is stored only in this browser. Export a backup to move it to another device.</div></div>' +
       '<div class="row"><button data-action="export">Export backup</button><button data-action="import">Import backup</button><button class="link danger" data-action="reset-all">Erase all data</button>' +
       '<input type="file" id="import-file" accept="application/json" style="display:none"></div></div></div>';
+  }
+
+  /* ---------- topic notes ---------- */
+  function topicsCard(chId) {
+    var list = DATA.topics ? DATA.topics.filter(function (t) { return t.chapter === chId; }) : [];
+    if (!list.length) return '';
+    var rows = list.map(function (t) {
+      var n = DATA.questions.filter(function (q) { return q.topic === t.id; }).length;
+      return '<div class="focus-item"><div class="focus-main"><div><b>' + t.title + '</b><div class="muted small">' + n + ' question' + (n === 1 ? '' : 's') + ' in the bank</div></div></div>' +
+        '<button class="sm soft" data-action="topic" data-arg="' + t.id + '">Read full notes</button></div>';
+    }).join('');
+    return '<div class="card"><div class="section-title" style="margin-bottom:2px">Topic notes</div><div class="muted small" style="margin-bottom:10px">Everything each topic is about, in one place.</div>' + rows + '</div>';
+  }
+  function renderTopic() {
+    var t = TOPICS[view.topicId];
+    var qs = DATA.questions.filter(function (q) { return q.topic === t.id; });
+    var perQ = A.computeStats().perQ;
+    var rows = qs.map(function (q, i) {
+      var pq = perQ[q.id];
+      var dot = !pq ? '' : pq.last === 'correct' ? ' right' : pq.last === 'wrong' ? ' wrongq' : ' unatt';
+      var plain = A.stripTags(q.q);
+      return '<tr class="click" data-action="study-topic" data-arg="' + i + '"><td><span class="dot' + dot + '"></span>' + esc(plain.slice(0, 100)) + (plain.length > 100 ? '...' : '') + '</td></tr>';
+    }).join('');
+    view.studyQids = qs.map(function (q) { return q.id; });
+    view.chapterId = t.chapter;
+    topExtra.innerHTML = '';
+    app.innerHTML = '<div class="page-head"><div><div class="page-title">' + t.title + '</div><div class="page-sub"><span class="tag">' + CHAPTERS[t.chapter].subject + '</span><span class="tag plain">' + esc(chapterName(t.chapter)) + '</span></div></div>' +
+      '<button data-action="chapter" data-arg="' + t.chapter + '">&larr; Back to chapter</button></div>' +
+      '<div class="card"><div class="deep-body" style="padding:0 4px 6px">' + topicBody(t) + '</div></div>' +
+      '<div class="card flush"><div class="card-head"><div class="section-title">Questions on this topic</div><span class="muted small">Click to study with solutions</span></div>' +
+      '<div class="table-scroll"><table class="tbl"><tbody>' + rows + '</tbody></table></div></div>';
   }
 
   /* ---------- chapter focus page ---------- */
@@ -706,18 +805,19 @@
       '<button class="soft" data-action="practice-weak" data-arg="' + id + '"' + (weak.length ? '' : ' disabled') + '>Practise weak questions (' + weak.length + ')</button>' +
       '<button class="soft" data-action="practice-new" data-arg="' + id + '"' + (unseen.length ? '' : ' disabled') + '>Try new questions (' + unseen.length + ')</button>' +
       '<button data-action="inf-chapter" data-arg="' + id + '">Infinity practice here</button><button data-action="study-all">Study all solutions</button></div></div>' +
+      topicsCard(id) +
       '<div class="card"><div class="section-title" style="margin-bottom:4px">What to focus on in this chapter</div><div class="muted small" style="margin-bottom:10px">Concepts behind the questions you got wrong or skipped, most-missed first.</div>' + conceptHtml + '</div>' +
       '<div class="card flush"><div class="card-head"><div class="section-title">All questions</div><span class="muted small">Green right, red wrong, amber skipped, grey new</span></div>' +
       '<div class="table-scroll"><table class="tbl"><thead><tr><th>Question</th><th class="num">Seen</th><th class="num">Missed</th><th class="num">Avg time</th></tr></thead><tbody>' + list + '</tbody></table></div></div>';
   }
 
   /* ---------- router ---------- */
-  var SCREENS = { home: renderHome, test: renderTest, infinity: renderInfinity, result: renderResult, review: renderReview, study: renderStudy, insights: renderInsights, chapter: renderChapter };
+  var SCREENS = { topic: renderTopic, home: renderHome, test: renderTest, infinity: renderInfinity, result: renderResult, review: renderReview, study: renderStudy, insights: renderInsights, chapter: renderChapter };
 
   function renderNav() {
     var hide = view.screen === 'test' || view.screen === 'infinity';
     nav.innerHTML = hide ? '' : [['home', 'Tests'], ['insights', 'My analysis']].map(function (n) {
-      var onInsights = view.screen === 'insights' || view.screen === 'chapter';
+      var onInsights = view.screen === 'insights' || view.screen === 'chapter' || view.screen === 'topic';
       var active = n[0] === 'insights' ? onInsights : !onInsights;
       return '<button class="' + (active ? 'active' : '') + '" data-action="' + n[0] + '">' + n[1] + '</button>';
     }).join('');
@@ -749,7 +849,12 @@
       case 'home': if (leaveGuard()) go({ screen: 'home' }); break;
       case 'insights': if (leaveGuard()) go({ screen: 'insights' }); break;
       case 'tab': view.tab = arg; render(); break;
+      case 'quote': view.quoteShift = (view.quoteShift || 0) + 1; document.getElementById('quote-text').textContent = dailyQuote(view.quoteShift); break;
       case 'chapter': go({ screen: 'chapter', chapterId: arg }); break;
+      case 'topic': go({ screen: 'topic', topicId: arg }); break;
+      case 'study-topic':
+        go({ screen: 'study', studyQids: view.studyQids, studyTitle: TOPICS[view.topicId] ? TOPICS[view.topicId].title : 'Topic', i: parseInt(arg, 10), back: 'topic', backArg: view.topicId, chapterId: view.chapterId });
+        break;
       case 'start-key': startKey(arg); break;
       case 'start-chapter': startChapter(arg, 'all'); break;
       case 'practice-weak': startChapter(arg, 'weak'); break;

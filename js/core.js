@@ -7,6 +7,8 @@
   DATA.questions.forEach(function (q) { QUESTIONS[q.id] = q; });
   var CHAPTERS = {};
   DATA.chapters.forEach(function (c) { CHAPTERS[c.id] = c; });
+  var TOPICS = {};
+  (DATA.topics || []).forEach(function (t) { TOPICS[t.id] = t; });
 
   var KEYS = {
     attempts: 'aai.attempts.v1',
@@ -209,7 +211,7 @@
   }
 
   window.AAI = {
-    DATA: DATA, QUESTIONS: QUESTIONS, CHAPTERS: CHAPTERS, KEYS: KEYS, LETTERS: ['A', 'B', 'C', 'D'],
+    DATA: DATA, QUESTIONS: QUESTIONS, CHAPTERS: CHAPTERS, TOPICS: TOPICS, KEYS: KEYS, LETTERS: ['A', 'B', 'C', 'D'],
     load: load, save: save, remove: remove,
     attempts: attempts, saveAttempts: saveAttempts, settings: settings,
     bookmarks: bookmarks, toggleBookmark: toggleBookmark,

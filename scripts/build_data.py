@@ -171,11 +171,33 @@ def to_html(s):
     return ''.join(out)
 
 
+def topic_html(t):
+    """One topic note: overview, terms, formulas, how, cases, values, uses, mistakes, exam."""
+    def lines(key):
+        return [to_html(x) for x in t.get(key, [])]
+    return {
+        'id': t['id'], 'chapter': t['chapter'], 'title': to_html(t['title']),
+        'overview': lines('overview'),
+        'terms': [{'term': to_html(x['term']), 'meaning': to_html(x['meaning'])} for x in t.get('terms', [])],
+        'formulas': lines('formulas'), 'how': lines('how'), 'cases': lines('cases'),
+        'values': lines('values'), 'uses': lines('uses'), 'mistakes': lines('mistakes'), 'exam': lines('exam'),
+    }
+
+
 def chapter_title(heading):
     return re.sub(r'\s*\(\d+ questions?\)$', '', heading).strip()
 
 
+def load_topics():
+    path = ROOT / 'data' / 'source' / 'topics.json'
+    if not path.exists():
+        return [], {}
+    raw = json.loads(path.read_text(encoding='utf-8'))
+    return [topic_html(t) for t in raw['topics']], raw['links']
+
+
 def build():
+    topics, links = load_topics()
     questions = []
     chapters = []
     for key, label in SOURCES:
@@ -200,11 +222,13 @@ def build():
                     'steps': [to_html(c) for c in item.get('calculation', [])],
                     'info': to_html(item.get('info', '')),
                     'trick': to_html(item.get('trick', '')),
+                    'topic': links.get(f'{chapter_id}-{q_idx}', {}).get('topic'),
+                    'topicLink': to_html(links.get(f'{chapter_id}-{q_idx}', {}).get('link', '')),
                 })
     out = ROOT / 'data' / 'data.js'
-    payload = {'chapters': chapters, 'questions': questions}
+    payload = {'chapters': chapters, 'questions': questions, 'topics': topics}
     out.write_text('window.AAI_DATA = ' + json.dumps(payload, ensure_ascii=False) + ';\n', encoding='utf-8')
-    print(f'{len(questions)} questions, {len(chapters)} chapters -> {out.relative_to(ROOT)}')
+    print(f'{len(questions)} questions, {len(chapters)} chapters, {len(topics)} topics -> {out.relative_to(ROOT)}')
 
 
 if __name__ == '__main__':
