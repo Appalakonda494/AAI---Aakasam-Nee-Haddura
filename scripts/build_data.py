@@ -18,6 +18,11 @@ _NCR_PAT = re.compile(r'\b(\d+)([CP])(\d+)\b')
 _EXP_PAT = re.compile(r'\^(-?[A-Za-z0-9]+(?:\.[0-9]+)?)')
 _SUB_PAT = re.compile(r'_(-?[A-Za-z0-9]+(?:\.[0-9]+)?)')
 _SQRT_BARE_PAT = re.compile(r'\bsqrt(\d+)\b')
+# a short variable name followed by 1-2 digits: E0, Z0, r1, q2, a23, eps0, mu0 -> subscript.
+# (letters before it, digits before it or ^ _ . excluded, so sqrt2, ln2, cos45, 2x3 are left alone)
+_VAR_SUB_PAT = re.compile(r'(?<![\^_>A-Za-z0-9.])(eps|mu|[A-Za-z])(\d{1,2})(?![\d\^_A-Za-z]|\.\d)')
+_VAR_GREEK = {'eps': 'ε', 'mu': 'μ'}
+_COEF_SUB_PAT = re.compile(r'\b([abc][xyz])(\d)\b')  # ax1, by1, cz1 -> ax<sub>1</sub>
 _PAREN_FRAC_PAT = re.compile(r'\(([^()]+)\)/(\(([^()]+)\)|\d+\.\d+|[A-Za-z0-9]+)')
 _FUNC_NAMES = {'sin', 'cos', 'tan', 'cot', 'sec', 'cosec', 'csc', 'log', 'ln',
                'exp', 'sinh', 'cosh', 'tanh', 'arcsin', 'arccos', 'arctan', 'sqrt'}
@@ -28,7 +33,7 @@ _GREEK = [
     (r'\bgamma\b(?!\s+(?:rays?|decay)\b)', 'γ'),
     (r'\bomega\b', 'ω'),
     (r'\bphi\b', 'φ'), (r'\bepsilon\b', 'ε'), (r'\bsigma\b', 'σ'), (r'\bdelta\b', 'Δ'),
-    (r'\brho\b', 'ρ'), (r'\beta0\b', 'ε0'),
+    (r'\brho\b', 'ρ'), (r'\beps\b', 'ε'),
 ]
 
 
@@ -72,6 +77,8 @@ def math_html(s):
     s = re.sub(r'\barc(sin|cos|tan|cot|sec|cosec)\b', r'\1<sup>-1</sup>', s)
     s = s.replace('+/-', '±').replace('infinity', '∞').replace('-&gt;', '→')
     s = s.replace('*', '×')
+    s = _COEF_SUB_PAT.sub(lambda m: f'{m.group(1)}<sub>{m.group(2)}</sub>', s)
+    s = _VAR_SUB_PAT.sub(lambda m: f'{_VAR_GREEK.get(m.group(1), m.group(1))}<sub>{m.group(2)}</sub>', s)
     for pat, rep in _GREEK:
         s = re.sub(pat, rep, s)
     return s
