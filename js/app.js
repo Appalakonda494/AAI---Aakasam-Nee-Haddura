@@ -388,7 +388,7 @@
     topExtra.innerHTML = '';
     app.innerHTML = '<div class="card"><div class="result-top">' +
       '<div class="donut" style="--a:' + pc + '%;--b:' + (pc + pw) + '%"><div><b>' + r.score + '</b><span>out of ' + r.max + '</span></div></div>' +
-      '<div><h2 style="font-size:22px">' + esc(a.title) + '</h2>' +
+      '<div><h2 style="font-size:17px">' + esc(a.title) + '</h2>' +
       '<div class="muted small" style="margin:4px 0 8px">' + fmtDate(a.submittedAt) + ' &middot; time taken ' + fmtTime(a.timeSpent) + timeNote + '</div>' + compare +
       '<div class="score-grid"><div class="stat good"><b>' + r.correct + '</b>Correct</div>' +
       '<div class="stat bad"><b>' + r.wrong + '</b>Wrong</div>' +
@@ -467,7 +467,7 @@
         '<button class="primary big" data-action="toggle-solution" data-arg="' + qid + '">Show solution</button></div>';
 
     topExtra.innerHTML = '';
-    app.innerHTML = '<div class="row spread" style="margin-bottom:16px"><div><h2 style="font-size:20px">Review: ' + esc(a.title) + '</h2></div>' +
+    app.innerHTML = '<div class="row spread" style="margin-bottom:16px"><div><h2 style="font-size:16px">Review: ' + esc(a.title) + '</h2></div>' +
       '<button data-action="open-result" data-arg="' + a.id + '">&larr; Back to result</button></div>' +
       '<div class="test-layout"><div class="card">' +
       '<div class="qhead"><div>' + stTag + '<span class="tag">' + q.subject + '</span><span class="tag plain">' + esc(CHAPTERS[q.chapter].title.replace(/^\d+\.\s*/, '')) + '</span>' +
