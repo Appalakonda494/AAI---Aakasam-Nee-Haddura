@@ -310,8 +310,8 @@
     var xs = points.map(function (p, i) { return pad + i * (w - 2 * pad) / (points.length - 1); });
     var ys = points.map(function (p) { return h - pad - (p.pct / 100) * (h - 2 * pad); });
     var line = xs.map(function (x, i) { return x.toFixed(1) + ',' + ys[i].toFixed(1); }).join(' ');
-    var dots = xs.map(function (x, i) { return '<circle cx="' + x.toFixed(1) + '" cy="' + ys[i].toFixed(1) + '" r="2.5" fill="#2563eb"><title>' + esc(points[i].title) + ': ' + Math.round(points[i].pct) + '%</title></circle>'; }).join('');
-    return '<svg class="spark" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none"><polyline points="' + line + '" fill="none" stroke="#2563eb" stroke-width="1.6" stroke-linejoin="round"/>' + dots + '</svg>';
+    var dots = xs.map(function (x, i) { return '<circle cx="' + x.toFixed(1) + '" cy="' + ys[i].toFixed(1) + '" r="2.5" fill="#8f3d14"><title>' + esc(points[i].title) + ': ' + Math.round(points[i].pct) + '%</title></circle>'; }).join('');
+    return '<svg class="spark" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none"><polyline points="' + line + '" fill="none" stroke="#8f3d14" stroke-width="1.6" stroke-linejoin="round"/>' + dots + '</svg>';
   }
 
   /* ---------- home ---------- */
@@ -421,7 +421,7 @@
       '<div class="field-label">Which questions first</div>' +
       chipGroup('inf-focus', [['smart', 'Smart mix'], ['weak', 'My weak ones'], ['unseen', 'New ones'], ['random', 'Random']], s.infFocus || 'smart', ' data-setting="infFocus"') +
       '<div class="field-label">Limit to one chapter (optional)</div>' +
-      '<select data-setting="infChapter" style="font:inherit;font-size:12px;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text2);min-width:260px">' + chapterOpts + '</select>' +
+      '<select data-setting="infChapter" style="font:inherit;font-size:12px;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text2);min-width:260px">' + chapterOpts + '</select>' +
       '<div style="margin-top:16px"><button class="primary big" data-action="inf-start">Start infinity practice</button></div></div>';
   }
 

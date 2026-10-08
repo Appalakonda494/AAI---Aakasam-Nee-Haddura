@@ -1,22 +1,24 @@
 /* Styled to match the Atlas ops console: compact type, slate palette, 12px cards. */
 :root {
-  --bg: #f7f8fa;
-  --card: #ffffff;
-  --text: #1e293b;
-  --text2: #475569;
-  --text3: #94a3b8;
-  --line: #e2e8f0;
-  --primary: #2563eb;
-  --primary-soft: #eff6ff;
-  --gray-bg: #f1f5f9;
-  --good: #16a34a;
-  --good-soft: #dcfce7;
-  --bad: #dc2626;
-  --bad-soft: #fee2e2;
-  --warn: #d97706;
-  --warn-soft: #fef3c7;
-  --mark: #7c3aed;
-  --mark-soft: #f3e8ff;
+  /* palette taken from the film poster: sand, cream, charcoal brown, rust */
+  --bg: #ebe0cb;
+  --card: #fbf7ef;
+  --text: #2a2018;
+  --text2: #5b4636;
+  --text3: #8f7a66;
+  --line: #d9c9ae;
+  --primary: #8f3d14;
+  --primary-soft: #f1dfc6;
+  --gray-bg: #efe4d0;
+  --ink: #2a2018;
+  --good: #2f7a3a;
+  --good-soft: #dcecd3;
+  --bad: #b3261e;
+  --bad-soft: #f6d9d3;
+  --warn: #b45f06;
+  --warn-soft: #f6e3bb;
+  --mark: #6a4c93;
+  --mark-soft: #e9ddf3;
 }
 
 * { box-sizing: border-box; }
@@ -39,18 +41,19 @@ sup, sub { line-height: 0; }
 /* ---------- header ---------- */
 .topbar {
   display: flex; align-items: center; gap: 18px; padding: 0 24px; height: 52px;
-  background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10;
+  background: var(--ink); border-bottom: 3px solid var(--primary); position: sticky; top: 0; z-index: 10;
 }
-.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; color: var(--text); text-decoration: none; white-space: nowrap; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; color: #f1dfc6; text-decoration: none; white-space: nowrap; }
 .logo {
   width: 32px; height: 32px; border-radius: 50%; flex: 0 0 32px;
-  background: #c9b79c url(../assets/icon.png) center / cover no-repeat; border: 2px solid #5b3a29;
+  background: #c9b79c url(../assets/icon.png) center / cover no-repeat; border: 2px solid #f1dfc6;
 }
 .nav-links { display: flex; gap: 2px; flex: 1; }
-.nav-links button { border: 0; background: none; min-height: 0; padding: 7px 12px; border-radius: 8px; }
-.nav-links button:hover:not(:disabled) { background: var(--gray-bg); color: var(--text); }
-.nav-links button.active { background: var(--primary-soft); color: var(--primary); }
-#topbar-extra { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.nav-links button { border: 0; background: none; color: #d9c9ae; min-height: 0; padding: 7px 12px; border-radius: 8px; }
+.nav-links button:hover:not(:disabled) { background: #3d2f23; color: #fff; }
+.nav-links button.active { background: var(--primary); color: #fff; }
+#topbar-extra { margin-left: auto; display: flex; align-items: center; gap: 10px; color: #d9c9ae; }
+#topbar-extra .muted { color: #d9c9ae; }
 #app { max-width: 1040px; margin: 0 auto; padding: 24px; }
 @media (max-width: 640px) { #app { padding: 14px 12px 40px; } .topbar { padding: 0 12px; gap: 8px; } .brand span.t { display: none; } }
 
@@ -76,7 +79,7 @@ sup, sub { line-height: 0; }
 .kpi span { font-size: 11px; color: var(--text2); }
 .kpi.good b { color: var(--good); } .kpi.bad b { color: var(--bad); } .kpi.warn b { color: var(--warn); } .kpi.pri b { color: var(--primary); }
 
-.banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 14px; border-radius: 12px; background: var(--warn-soft); border: 1px solid #fde68a; }
+.banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 14px; border-radius: 12px; background: var(--warn-soft); border: 1px solid #e5cf9c; }
 
 /* ---------- buttons ---------- */
 button {
@@ -86,12 +89,12 @@ button {
   min-height: 34px; padding: 8px 14px; transition: all .15s ease;
 }
 button:hover:not(:disabled) { background: var(--gray-bg); }
-button.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
-button.primary:hover:not(:disabled) { background: var(--primary); opacity: .9; }
+button.primary { background: var(--ink); border-color: var(--ink); color: #f6ead4; }
+button.primary:hover:not(:disabled) { background: var(--primary); border-color: var(--primary); opacity: 1; }
 button.big { min-height: 38px; padding: 10px 18px; font-size: 13px; }
 button.block { width: 100%; }
 button.soft { background: var(--primary-soft); border-color: transparent; color: var(--primary); }
-button.soft:hover:not(:disabled) { background: #dbeafe; }
+button.soft:hover:not(:disabled) { background: #e8d2b1; }
 button.sm { min-height: 28px; padding: 5px 10px; font-size: 11px; border-radius: 8px; }
 button.link { background: none; border: 0; min-height: 0; padding: 2px 4px; color: var(--primary); }
 button.link:hover:not(:disabled) { background: none; text-decoration: underline; }
@@ -267,8 +270,8 @@ table.tbl tr.click:hover td { background: var(--gray-bg); }
 .hence { margin-top: 10px; padding: 8px 12px; border-radius: 10px; background: var(--good-soft); color: var(--good); font-weight: 700; font-size: 13px; }
 .note { border-radius: 10px; padding: 8px 12px; margin-top: 8px; font-size: 12px; }
 .note b { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 1px; }
-.note.info { background: var(--warn-soft); color: #92400e; }
-.note.trick { background: var(--primary-soft); color: #1d4ed8; }
+.note.info { background: var(--warn-soft); color: #7a4306; }
+.note.trick { background: var(--primary-soft); color: var(--primary); border-left: 3px solid var(--primary); }
 
 .frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 3px; font-size: .92em; }
 .frac .num { border-bottom: 1px solid currentColor; padding: 0 4px 1px; }
@@ -293,6 +296,7 @@ table.tbl tr.click:hover td { background: var(--gray-bg); }
 @font-face { font-family: 'Anek Telugu'; font-weight: 800; font-style: normal; font-display: swap; src: url(../assets/fonts/AnekTelugu-ExtraBold.woff2) format('woff2'); }
 .te { font-weight: 700; letter-spacing: 0; }
 .brand .te, .hero-title, .page-title.te { font-family: 'Anek Telugu', 'Noto Sans Telugu', 'Nirmala UI', sans-serif; font-weight: 800; color: #5b3a29; }
+.brand .te { color: #f1dfc6; }
 .brand .te { font-size: 17px; }
 .page-title.te { font-size: 26px; line-height: 1.3; }
 .quote { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; border-left: 4px solid var(--primary); }
@@ -325,10 +329,10 @@ details.deep:not([open]) > summary::after { content: "show"; }
 .deep-body ul.formulas li { font-variant-numeric: tabular-nums; }
 
 /* ---------- home banner (poster palette) ---------- */
-.hero { display: grid; grid-template-columns: 1fr 340px; background: #e8dcc8; border: 1px solid #d6c4a6; border-radius: 12px; overflow: hidden; margin-bottom: 14px; min-height: 170px; }
+.hero { display: grid; grid-template-columns: 1fr 340px; background: #e3d2b4; border: 1px solid #cdb893; border-radius: 12px; overflow: hidden; margin-bottom: 14px; min-height: 170px; }
 .hero-text { padding: 20px 24px; display: flex; flex-direction: column; justify-content: center; }
 .hero-title { font-size: 34px; line-height: 1.25; filter: url(#rough); }
 .hero-sub { margin-top: 6px; font-size: 13px; font-weight: 600; color: #5b3a29; letter-spacing: .02em; }
 .hero-sub2 { margin-top: 2px; font-size: 12px; color: #7a5a44; }
-.hero-img { background: #d6c4a6 url(../assets/hero.jpg) center 30% / cover no-repeat; min-height: 150px; }
+.hero-img { background: #cdb893 url(../assets/hero.jpg) center 30% / cover no-repeat; min-height: 150px; }
 @media (max-width: 760px) { .hero { grid-template-columns: 1fr; } .hero-img { min-height: 130px; order: -1; } .hero-title { font-size: 28px; } }
