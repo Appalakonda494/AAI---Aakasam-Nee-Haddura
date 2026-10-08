@@ -29,11 +29,19 @@
   }
 
   /* ---------- film watermark ---------- */
-  var WM = ['arms', 'face', 'script'];
+  // film frames (sepia) for the faint background. 'script' is the handwriting texture for the empty state.
+  var WM_WIN = ['arms', 'point', 'sky', 'couple'];      // triumphant / hopeful frames
+  var WM_TRY = ['face', 'serious', 'warm', 'red'];      // resolve / keep-going frames
+  var WM = WM_WIN.concat(WM_TRY, ['script']);
   var wmEl = document.getElementById('watermark');
   var wmOk = {};
   WM.forEach(function (k) { var i = new Image(); i.onload = function () { wmOk[k] = true; if (wmWanted) setWatermark(wmWanted); }; i.src = 'assets/wm-' + k + '.jpg'; });
   var wmWanted = null;
+  function pickFrom(list, seed) {
+    var ok = list.filter(function (k) { return wmOk[k]; });
+    var pool = ok.length ? ok : list;
+    return pool[seed % pool.length];
+  }
   // Home rotates daily; the result screen picks by score (triumph vs resolve); empty analysis gets the handwriting texture.
   function setWatermark(kind) {
     wmWanted = kind;
@@ -43,11 +51,14 @@
     wmEl.classList.add('on');
   }
   function watermarkFor(screen) {
-    if (screen === 'home') return WM[Math.floor(Date.now() / 86400000) % WM.length];
+    var day = Math.floor(Date.now() / 86400000);
+    if (screen === 'home') return pickFrom(WM_WIN.concat(WM_TRY), day);
     if (screen === 'result') {
       var a = A.findAttempt(view.attemptId);
       var p = a && a.result.max ? a.result.correct * 100 / a.result.max : 0;
-      return p >= 60 ? 'arms' : 'face';
+      var seed = 0, id = a ? a.id : '';
+      for (var i = 0; i < id.length; i++) seed = (seed * 31 + id.charCodeAt(i)) % 9973;
+      return pickFrom(p >= 60 ? WM_WIN : WM_TRY, seed);
     }
     if (screen === 'insights' && !attempts().length) return 'script';
     return null;
