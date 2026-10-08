@@ -7,14 +7,26 @@ A small web app to practise real AAI Junior Executive past-paper questions (Clas
 
 ## What it does
 
-- **Full mock test** - Maths, Physics or Mixed; pick the length, timer and negative marking.
-- **Chapter-wise practice** - pick one or more chapters.
-- **Tickable options** - click an option to tick it, click again (or "Clear response") to untick. Mark for review, question palette, keyboard shortcuts (`A`-`D` / `1`-`4` to answer, arrow keys to move).
-- **Submit, then solutions** - solutions are hidden during the test. After you submit, open the review and click **Show solution** on a question to reveal the correct answer and the full working. Until you click, only your own answer is shown. You can reopen any past attempt's review from the history.
-- **Re-attempt mode** - re-attempt only the wrong and skipped questions of any attempt, retake the whole test, or practise your running **mistake bank** (questions whose latest result was wrong or skipped).
-- **History and resume** - results, chapter-wise breakdown, and a test in progress survive a page refresh.
+**Tests**
+- **Full tests** - six fixed Full Mocks (Maths + Physics, ~57 questions each) that together cover the whole bank exactly once, plus six fixed Maths tests and six fixed Physics tests. Best, last score and attempt count are tracked so you can retake and compare.
+- **Chapter tests** - one test per chapter (35 chapters), with your score and status (Not started / Weak / Improving / Strong).
+- **Infinity practice** - endless questions one at a time. Check each answer immediately, open the solution if you want it, keep a streak, and stop whenever you like (the session is saved). Pick the subject, an optional chapter, and what comes first: smart mix, your weak ones, new ones, or random. When the bank runs out it starts a new round.
+- **Custom** - random mock of any size, any set of chapters, your mistake bank, and your bookmarked questions.
 
-All progress is stored in your own browser (`localStorage`). Nothing is sent anywhere.
+**Taking a test**
+- Tickable options (click again or "Clear" to untick), mark for review, question palette, keyboard shortcuts (`A`-`D` / `1`-`4`, arrow keys), optional timer and negative marking, submit confirmation.
+- Solutions are hidden during the test. After you submit, open the review and click **Show solution** to see the correct answer and full working. Until then only your own answer is shown.
+
+**Where you are failing, and where to focus**
+- **My analysis** - accuracy, wrong vs skipped rate, average time per question, score trend, and a ranked **Focus here first** list. Priority combines how often a chapter appears in the papers with how badly it is going for you. It also flags slow chapters and gives tips (e.g. many wrong answers means concept gaps; many skipped means practise elimination).
+- **Chapter page** - for each chapter: score, coverage, the concepts behind the questions you got wrong or skipped (most-missed first, with formula and quick trick), one-click practice on weak or new questions, study mode, and a per-question history.
+- **Result screen** - chapter-wise breakdown with the weakest chapters linked to their focus pages.
+
+**Re-attempt and revision**
+- Re-attempt only the wrong and skipped questions of any attempt, or retake the whole test.
+- Mistake bank (latest result wrong or skipped), bookmarks, and study mode (browse a chapter's solutions without being scored).
+
+**Your data** stays in your browser (`localStorage`). Export and import a JSON backup from the analysis page to move it between devices.
 
 ## Run it
 
