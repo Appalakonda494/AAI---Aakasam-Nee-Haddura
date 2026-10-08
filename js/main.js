@@ -74,6 +74,23 @@
     return '<div class="shabash te">' + line + ' <span class="when">' + (seconds < 1 ? 'under 1s' : seconds + 's') + ' of ' + recommendedSec() + 's</span></div>';
   }
 
+  /* ---------- custom dialogs (replace the browser's confirm / alert) ---------- */
+  var dialogHandler = null;
+  function closeDialog() { modalRoot.innerHTML = ''; dialogHandler = null; }
+  // opts: title, message, yes (button label), no (label, omit for a plain notice), danger (red yes button)
+  function askConfirm(opts, onYes) {
+    var hasNo = opts.no !== null;
+    modalRoot.innerHTML = '<div class="modal-back" data-dialog="backdrop"><div class="modal" role="dialog" aria-modal="true">' +
+      '<h3>' + esc(opts.title) + '</h3><div class="muted">' + esc(opts.message) + '</div>' +
+      '<div class="row" style="margin-top:16px;justify-content:flex-end">' +
+      (hasNo ? '<button class="big" data-dialog="no">' + esc(opts.no || 'Cancel') + '</button>' : '') +
+      '<button class="big ' + (opts.danger ? 'danger' : 'primary') + '" data-dialog="yes" id="dialog-yes">' + esc(opts.yes || 'OK') + '</button></div></div></div>';
+    dialogHandler = { onYes: onYes || null, hasNo: hasNo };
+    var yes = document.getElementById('dialog-yes');
+    if (yes) yes.focus();
+  }
+  function notify(message, title) { askConfirm({ title: title || 'Heads up', message: message, no: null, yes: 'OK' }); }
+
   /* ---------- small helpers ---------- */
   function go(next) {
     view = Object.assign({ screen: 'home', tab: view.tab || 'full', i: 0, filter: 'all', shown: {} }, next);
@@ -126,7 +143,7 @@
 
   /* ---------- finite tests ---------- */
   function startTest(o) {
-    if (!o.qids.length) { alert('No questions match that selection.'); return; }
+    if (!o.qids.length) { notify('No questions match that selection.'); return; }
     var s = settings();
     var qids = o.noShuffle ? o.qids : (s.shuffle ? A.shuffled(o.qids) : o.qids);
     var minutes = minutesFor(qids.length);
@@ -900,15 +917,17 @@
   }
 
   /* ---------- actions ---------- */
-  function leaveGuard() {
-    return (view.screen === 'test' || view.screen === 'infinity') ? confirm('Leave this screen? Your progress is saved and you can resume from Tests.') : true;
+  // runs `then` right away, or after the user confirms when a test or infinity session is open
+  function guard(then) {
+    if (view.screen !== 'test' && view.screen !== 'infinity') { then(); return; }
+    askConfirm({ title: 'Leave this screen?', message: 'Your progress is saved. You can resume from the Tests page.', yes: 'Leave', no: 'Stay here' }, then);
   }
 
   function handleAction(action, arg) {
     var qid, a;
     switch (action) {
-      case 'home': if (leaveGuard()) go({ screen: 'home' }); break;
-      case 'insights': if (leaveGuard()) go({ screen: 'insights' }); break;
+      case 'home': guard(function () { go({ screen: 'home' }); }); break;
+      case 'insights': guard(function () { go({ screen: 'insights' }); }); break;
       case 'tab': view.tab = arg; render(); break;
       case 'chapter': go({ screen: 'chapter', chapterId: arg }); break;
       case 'topic': go({ screen: 'topic', topicId: arg }); break;
@@ -940,7 +959,7 @@
       case 'cancel-modal': modalRoot.innerHTML = ''; break;
       case 'resume': go({ screen: 'test' }); break;
       case 'discard':
-        if (confirm('Discard the test in progress?')) { current = null; A.remove(KEYS.current); render(); }
+        askConfirm({ title: 'Discard this test?', message: 'The answers you have given so far will be lost.', yes: 'Discard', no: 'Keep it', danger: true }, function () { current = null; A.remove(KEYS.current); render(); });
         break;
       case 'bookmark': A.toggleBookmark(arg); rerenderKeepScroll(); break;
       case 'toggle-solution':
@@ -967,7 +986,9 @@
       case 'inf-start': infStart(); break;
       case 'inf-chapter': infStartChapter(arg); break;
       case 'resume-inf': go({ screen: 'infinity' }); break;
-      case 'discard-inf': if (confirm('End the infinity session? Answers so far are saved to your analysis.')) infEnd(); break;
+      case 'discard-inf':
+        askConfirm({ title: 'End the infinity session?', message: 'Answers so far are saved to your analysis.', yes: 'End session', no: 'Keep going' }, infEnd);
+        break;
       case 'inf-choose': qid = inf.qids[inf.i]; inf.answers[qid] = parseInt(arg, 10); rerenderKeepScroll(); break;
       case 'inf-check': infCheck(false); break;
       case 'inf-skip': infCheck(true); break;
@@ -978,15 +999,15 @@
         break;
       case 'inf-end-yes': infEnd(); break;
       case 'clear-history':
-        if (confirm('Delete all attempt history from this browser?')) { A.remove(KEYS.attempts); render(); }
+        askConfirm({ title: 'Clear attempt history?', message: 'All saved attempts will be deleted from this browser.', yes: 'Clear history', no: 'Cancel', danger: true }, function () { A.remove(KEYS.attempts); render(); });
         break;
       case 'export': exportData(); break;
       case 'import': document.getElementById('import-file').click(); break;
       case 'reset-all':
-        if (confirm('Erase ALL attempts, bookmarks and settings from this browser? This cannot be undone.')) {
+        askConfirm({ title: 'Erase all your data?', message: 'Attempts, bookmarks and settings will be removed from this browser. This cannot be undone.', yes: 'Erase everything', no: 'Cancel', danger: true }, function () {
           Object.keys(KEYS).forEach(function (k) { A.remove(KEYS[k]); });
           current = null; inf = null; go({ screen: 'home' });
-        }
+        });
         break;
       default: break;
     }
@@ -1015,10 +1036,10 @@
         list.sort(function (x, y) { return x.submittedAt - y.submittedAt; });
         A.saveAttempts(list);
         A.save(KEYS.bookmarks, Object.assign({}, A.bookmarks(), p.bookmarks || {}));
-        alert('Imported ' + added + ' new attempt(s).');
+        notify('Imported ' + added + ' new attempt(s).', 'Backup imported');
         render();
       } catch (e) {
-        alert('That file is not a valid backup.');
+        notify('That file is not a valid backup.', 'Import failed');
       }
     };
     reader.readAsText(file);
@@ -1026,6 +1047,15 @@
 
   /* ---------- events ---------- */
   document.addEventListener('click', function (e) {
+    var d = e.target.closest('[data-dialog]');
+    if (d && dialogHandler) {
+      var kind = d.getAttribute('data-dialog');
+      if (kind === 'backdrop' && e.target !== d) return;          // click inside the card
+      var fn = kind === 'yes' ? dialogHandler.onYes : null;
+      closeDialog();
+      if (fn) fn();
+      return;
+    }
     var el = e.target.closest('[data-action]');
     if (el && el.tagName !== 'INPUT' && el.tagName !== 'SELECT') handleAction(el.getAttribute('data-action'), el.getAttribute('data-arg'));
   });
@@ -1070,13 +1100,17 @@
       startTest({ kind: 'mock', title: subject + ' random mock (' + qids.length + ' Q)', qids: qids });
     } else if (f.id === 'chapter-form') {
       var chosen = Array.prototype.map.call(f.querySelectorAll('input[name=chapter]:checked'), function (c) { return c.value; });
-      if (!chosen.length) { alert('Pick at least one chapter.'); return; }
+      if (!chosen.length) { notify('Pick at least one chapter.'); return; }
       var ids = DATA.questions.filter(function (q) { return chosen.indexOf(q.chapter) !== -1; }).map(function (q) { return q.id; });
       startTest({ kind: 'chapter', title: (chosen.length === 1 ? chapterName(chosen[0]) : chosen.length + ' chapters') + ' (' + ids.length + ' Q)', qids: ids });
     }
   });
 
   document.addEventListener('keydown', function (e) {
+    if (dialogHandler && modalRoot.querySelector('[data-dialog]')) {
+      if (e.key === 'Escape') closeDialog();
+      return;                                                    // Enter activates the focused button
+    }
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
     var letter = /^[a-dA-D]$/.test(e.key) ? e.key.toLowerCase().charCodeAt(0) - 97 : /^[1-4]$/.test(e.key) ? parseInt(e.key, 10) - 1 : -1;
     if (view.screen === 'test' && current) {
